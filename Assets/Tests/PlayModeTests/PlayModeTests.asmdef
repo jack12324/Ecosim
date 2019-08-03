@@ -1,0 +1,9 @@
+﻿{
+    "name": "PlayModeTests",
+    "references": [
+        "Scripts"
+    ],
+    "optionalUnityReferences": [
+        "TestAssemblies"
+    ]
+}
