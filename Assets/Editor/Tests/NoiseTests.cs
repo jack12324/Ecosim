@@ -1,5 +1,6 @@
 ﻿using NUnit.Framework;
 using NUnit.Framework.Internal;
+using Scenes.Scripts;
 
 namespace Editor.Tests
 {
