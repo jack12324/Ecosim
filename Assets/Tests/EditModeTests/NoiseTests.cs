@@ -1,4 +1,5 @@
-﻿using ChanceNET;
+﻿using System;
+using ChanceNET;
 using FluentAssertions;
 using NUnit.Framework;
 using Scenes.Scripts;
@@ -94,13 +95,32 @@ namespace Editor.Tests
         [Test]
         public void GivenGeneratedMap_WhenChangingScale_ShouldScaleFromCenter()
         {
-            //lerping messes this up for testing
-        }
+            var mapWidth = _chance.Integer(2, 100);
+            var mapHeight = _chance.Integer(2, 100);
+            var scale1 = (float) _chance.Double();
+            var scale2 = (float) _chance.Double();
+            var octaves = _chance.Integer(1, 8);
+            var persistence = (float) _chance.Double();
+            var lacunarity = (float) _chance.Double() + _chance.Integer(0, 10);
+            var offset = new Vector2(_chance.Integer(-10000, 10000), _chance.Integer(-10000, 10000));
+            var seed = _chance.Integer();
+            
+            var result1 = Noise.GenerateNoiseMap(mapWidth, mapHeight, scale1, octaves, persistence, lacunarity, offset, seed);
+            var result2 = Noise.GenerateNoiseMap(mapWidth, mapHeight, scale2, octaves, persistence, lacunarity, offset, seed);
 
+
+            var midHeight = mapHeight / 2;
+            var midWidth = mapWidth / 2;
+            
+            var middlePixel1 = result1[midWidth, midHeight];
+            var middlePixel2 = result2[midWidth, midHeight];
+
+            middlePixel1.Should().Be(middlePixel2);
+        }
+        
         [Test]
         public void GivenGeneratedMap_WhenChangingXOffset_ShouldMoveMap()
         {
-            //lerping changes values more than should be. could test all points are relatively the same between scales
         }
 
         [Test]

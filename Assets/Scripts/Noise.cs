@@ -1,4 +1,5 @@
-﻿using UnityEngine;
+﻿using System;
+using UnityEngine;
 using Random = System.Random;
 using Vector2 = UnityEngine.Vector2;
 
@@ -19,8 +20,8 @@ namespace Scenes.Scripts
                 octaveOffsets[octave] = new Vector2(xOffset, yOffset);
             }
 
-            var halfWidth = mapWidth / 2f;
-            var halfHeight = mapHeight / 2f;
+            var halfWidth = mapWidth / 2;
+            var halfHeight = mapHeight / 2;
             
 
             if (scale <= 0)
@@ -28,7 +29,13 @@ namespace Scenes.Scripts
                 scale = 0.00003f;
             }
             
-            var noiseHeightRange = new NoiseHeightRange(float.MaxValue, float.MinValue);
+            
+            float maxAmplitude = octaves;
+            if (!Mathf.Approximately(1, persistence))
+            {
+                //This Calculation is derived from the definition of a Geometric Sum
+                maxAmplitude = (float)(1 - Math.Pow(persistence, octaves)) / (1 - persistence);
+            }
 
             for (var y = 0; y < mapHeight; y++)
             {
@@ -41,7 +48,7 @@ namespace Scenes.Scripts
                     for (var octave = 0; octave < octaves; octave++)
                     {
                         var xSample = ((x - halfWidth) / scale + octaveOffsets[octave].x) * frequency ;
-                        var ySample = ((y - halfWidth) / scale + octaveOffsets[octave].y) * frequency ;
+                        var ySample = ((y - halfHeight) / scale + octaveOffsets[octave].y) * frequency ;
                         
                         var perlinValue = Mathf.PerlinNoise(xSample, ySample) * 2 - 1;
                         noiseHeight += perlinValue * amplitude;
@@ -50,51 +57,11 @@ namespace Scenes.Scripts
                         frequency *= lacunarity;
                     }
                     
-                    noiseMap[x, y] = noiseHeight;
-
-                    noiseHeightRange.UpdateNoiseMapHeightRange(noiseHeight);
+                    noiseMap[x, y] = Mathf.InverseLerp(-maxAmplitude, maxAmplitude, noiseHeight);
                 }
             }
-
-            return NormalizeMap(noiseMap, noiseHeightRange);
-        }
-
-        private static float[,] NormalizeMap(float[,] noiseMap, NoiseHeightRange noiseHeightRange)
-        {
-            for (var yIndex = 0; yIndex < noiseMap.GetLength(1); yIndex++)
-            {
-                for (var xIndex = 0; xIndex < noiseMap.GetLength(0); xIndex++)
-                {
-                    noiseMap[xIndex, yIndex] =
-                        Mathf.InverseLerp(noiseHeightRange.MinimumValue, noiseHeightRange.MaximumValue, noiseMap[xIndex, yIndex]);
-                }
-            }
-
+            
             return noiseMap;
         }
-    }
-
-    internal class NoiseHeightRange
-    {
-        public float MinimumValue { get; set; }
-        public float MaximumValue { get; set; }
-
-        public NoiseHeightRange(float minimumValue, float maximumValue)
-        {
-            MinimumValue = minimumValue;
-            MaximumValue = maximumValue;
-        }
-
-        public void UpdateNoiseMapHeightRange(float newNoiseHeight)
-        {
-            if (newNoiseHeight < MinimumValue)
-            {
-                MinimumValue = newNoiseHeight;
-            }
-            else if (newNoiseHeight > MaximumValue)
-            {
-                MaximumValue = newNoiseHeight;
-            }
-        }
-    }
+    }  
 }
