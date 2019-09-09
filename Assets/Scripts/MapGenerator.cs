@@ -22,7 +22,8 @@ namespace Scenes.Scripts
         public void GenerateMap()
         {
             var offset = new Vector2(offsetX, offsetY);
-            var noiseMap = Noise.GenerateNoiseMap(mapWidth, mapHeight, noiseScale, octaves, persistence, lacunarity, offset, seed);
+            var mapAttributes = new MapAttributes(mapWidth, mapHeight, noiseScale, octaves, persistence, lacunarity, offset, seed);
+            var noiseMap = Noise.GenerateNoiseMap(mapAttributes);
 
             var mapDisplay= GetComponent<MapDisplay>();
             mapDisplay.DrawNoiseMap(noiseMap);

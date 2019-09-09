@@ -7,54 +7,54 @@ namespace Scenes.Scripts
 {
     public static class Noise
     {
-        public static float[,] GenerateNoiseMap(int mapWidth, int mapHeight, float scale, int octaves, float persistence, float lacunarity, Vector2 offset, int seed)
+        public static float[,] GenerateNoiseMap(MapAttributes attributes)
         {
-            var noiseMap = new float[mapWidth, mapHeight];
-            var random = new Random(seed);
-            var octaveOffsets = new Vector2[octaves];
+            var noiseMap = new float[attributes.MapWidth, attributes.MapHeight];
+            var random = new Random(attributes.Seed);
+            var octaveOffsets = new Vector2[attributes.Octaves];
             
-            for (var octave = 0; octave < octaves; octave++)
+            for (var octave = 0; octave < attributes.Octaves; octave++)
             {
-                var xOffset = random.Next(-100000, 100000) + offset.x;
-                var yOffset = random.Next(-100000, 100000) + offset.y;
+                var xOffset = random.Next(-100000, 100000) + attributes.Offset.x;
+                var yOffset = random.Next(-100000, 100000) + attributes.Offset.y;
                 octaveOffsets[octave] = new Vector2(xOffset, yOffset);
             }
 
-            var halfWidth = mapWidth / 2;
-            var halfHeight = mapHeight / 2;
+            var halfWidth = attributes.MapWidth / 2;
+            var halfHeight = attributes.MapHeight / 2;
             
 
-            if (scale <= 0)
+            if (attributes.NoiseScale <= 0)
             {
-                scale = 0.00003f;
+                attributes.NoiseScale = 0.00003f;
             }
             
             
-            float maxAmplitude = octaves;
-            if (!Mathf.Approximately(1, persistence))
+            float maxAmplitude = attributes.Octaves;
+            if (!Mathf.Approximately(1, attributes.Persistence))
             {
                 //This Calculation is derived from the definition of a Geometric Sum
-                maxAmplitude = (float)(1 - Math.Pow(persistence, octaves)) / (1 - persistence);
+                maxAmplitude = (float)(1 - Math.Pow(attributes.Persistence, attributes.Octaves)) / (1 - attributes.Persistence);
             }
 
-            for (var y = 0; y < mapHeight; y++)
+            for (var y = 0; y < attributes.MapHeight; y++)
             {
-                for (var x = 0; x < mapWidth; x++)
+                for (var x = 0; x < attributes.MapWidth; x++)
                 {
                     var noiseHeight = 0f;
                     var amplitude = 1f;
                     var frequency = 1f;
                     
-                    for (var octave = 0; octave < octaves; octave++)
+                    for (var octave = 0; octave < attributes.Octaves; octave++)
                     {
-                        var xSample = ((x - halfWidth) / scale + octaveOffsets[octave].x) * frequency ;
-                        var ySample = ((y - halfHeight) / scale + octaveOffsets[octave].y) * frequency ;
+                        var xSample = ((x - halfWidth) / attributes.NoiseScale + octaveOffsets[octave].x) * frequency ;
+                        var ySample = ((y - halfHeight) / attributes.NoiseScale + octaveOffsets[octave].y) * frequency ;
                         
                         var perlinValue = Mathf.PerlinNoise(xSample, ySample) * 2 - 1;
                         noiseHeight += perlinValue * amplitude;
                         
-                        amplitude *= persistence;
-                        frequency *= lacunarity;
+                        amplitude *= attributes.Persistence;
+                        frequency *= attributes.Lacunarity;
                     }
                     
                     noiseMap[x, y] = Mathf.InverseLerp(-maxAmplitude, maxAmplitude, noiseHeight);
