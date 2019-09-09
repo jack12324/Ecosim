@@ -1,157 +1,118 @@
-﻿using System;
+﻿using AutoFixture;
 using ChanceNET;
 using FluentAssertions;
 using NUnit.Framework;
-using Scenes.Scripts;
 using UnityEngine;
 
-namespace Editor.Tests
+namespace Tests.EditModeTests
 {
     public class NoiseTests
     {
+        private readonly Fixture _fixture;
         private readonly Chance _chance;
 
         public NoiseTests()
         {
             _chance = new Chance();
+            _fixture = new Fixture();
         }
         
         [Test]
         public void GivenMapDimensions_WhenCallingGenerateMap_ThenReturnMapWithGivenDimensions()
         {
-            var mapWidth = _chance.Integer(2, 100);
-            var mapHeight = _chance.Integer(2, 100);
-            var scale = (float) _chance.Double();
-            var octaves = _chance.Integer(1, 8);
-            var persistence = (float) _chance.Double();
-            var lacunarity = (float) _chance.Double() + _chance.Integer(0, 10);
-            var offset = new Vector2(_chance.Integer(-10000, 10000), _chance.Integer(-10000, 10000));
-            var seed = _chance.Integer();
-            
-            var attributes = new MapAttributes(mapWidth, mapHeight, scale, octaves, persistence, lacunarity, offset, seed);
+            var attributes = GenerateRandomMapAttributes();
             
             var result = Noise.GenerateNoiseMap(attributes);
 
-            mapWidth.Should().Be(result.GetLength(0));
-            mapHeight.Should().Be(result.GetLength(1));
+            Assert.AreEqual(attributes.MapWidth, result.GetLength(0), attributes.ToString());
+            Assert.AreEqual(attributes.MapHeight, result.GetLength(1), attributes.ToString());
         }
 
         [Test]
         public void GivenParameters_WhenCallingGenerateMap_ThenReturnMapWithDifferentValues()
         {
-            var mapWidth = _chance.Integer(2, 100);
-            var mapHeight = _chance.Integer(2, 100);
-            var scale = (float) _chance.Double();
-            var octaves = _chance.Integer(1, 8);
-            var persistence = (float) _chance.Double();
-            var lacunarity = (float) _chance.Double() + _chance.Integer(0, 10);
-            var offset = new Vector2(_chance.Integer(-10000, 10000), _chance.Integer(-10000, 10000));
-            var seed = _chance.Integer();
-            
-            var attributes = new MapAttributes(mapWidth, mapHeight, scale, octaves, persistence, lacunarity, offset, seed);
+            var attributes = GenerateRandomMapAttributes();
             var result = Noise.GenerateNoiseMap(attributes);
 
             var firstPixel = result[0, 0];
-            var testPixel = result[_chance.Integer(1, mapWidth), _chance.Integer(1, mapHeight)];
+            var testPixel = result[_chance.Integer(1, attributes.MapWidth), _chance.Integer(1, attributes.MapHeight)];
 
-            firstPixel.Should().NotBe(testPixel);
+            Assert.AreNotEqual(firstPixel,testPixel, attributes.ToString());
         }
 
         [Test]
         public void GivenDifferentScaleValues_WhenCallingGenerateMap_ThenReturnDifferentMaps()
         {
-            var mapWidth = _chance.Integer(2, 100);
-            var mapHeight = _chance.Integer(2, 100);
-            var scale1 = (float) _chance.Double();
-            var scale2 = (float) _chance.Double();
-            var octaves = _chance.Integer(1, 8);
-            var persistence = (float) _chance.Double();
-            var lacunarity = (float) _chance.Double() + _chance.Integer(0, 10);
-            var offset = new Vector2(_chance.Integer(-10000, 10000), _chance.Integer(-10000, 10000));
-            var seed = _chance.Integer();
+            var attributes1 = GenerateRandomMapAttributes();
             
+            var attributes2 = attributes1.DeepCopy();
+            attributes2.NoiseScale = (float) _chance.Double() + _chance.Integer(0, 50);
             
-            var attributes1 = new MapAttributes(mapWidth, mapHeight, scale1, octaves, persistence, lacunarity, offset, seed);
-            var attributes2 = new MapAttributes(mapWidth, mapHeight, scale2, octaves, persistence, lacunarity, offset, seed);
             var result1 = Noise.GenerateNoiseMap(attributes1);
             var result2 = Noise.GenerateNoiseMap(attributes2);
 
-            Assert.AreNotEqual(result1, result2);
-
+            Assert.AreNotEqual(result1, result2, $"{attributes1}\n{attributes2}");
         }
 
         [Test]
         public void GivenScaleIsZero_WhenCallingGenerateMap_ShouldReturnNoiseMapWithValidNumbers()
         {
-            var mapWidth = _chance.Integer(2, 100);
-            var mapHeight = _chance.Integer(2, 100);
-            var scale = 0;
-            var octaves = _chance.Integer(1, 8);
-            var persistence = (float) _chance.Double();
-            var lacunarity = (float) _chance.Double() + _chance.Integer(0, 10);
-            var offset = new Vector2(_chance.Integer(-10000, 10000), _chance.Integer(-10000, 10000));
-            var seed = _chance.Integer();
-            
-            var attributes = new MapAttributes(mapWidth, mapHeight, scale, octaves, persistence, lacunarity, offset, seed);
+            var attributes = GenerateRandomMapAttributes();
+            attributes.NoiseScale = 0;
             var result = Noise.GenerateNoiseMap(attributes);
 
-            result.Should().NotContain(float.NaN);
-
+            for (var x = 0; x < result.GetLength(0); x++)
+            {
+                for (var y = 0; y < result.GetLength(1); y++)
+                {
+                    Assert.AreNotEqual(result[x, y], float.NaN, attributes.ToString());
+                }
+            }
         }
 
         [Test]
         public void GivenGeneratedMap_WhenChangingScale_ShouldScaleFromCenter()
         {
-            var mapWidth = _chance.Integer(2, 100);
-            var mapHeight = _chance.Integer(2, 100);
-            var scale1 = (float) _chance.Double();
-            var scale2 = (float) _chance.Double();
-            var octaves = _chance.Integer(1, 8);
-            var persistence = (float) _chance.Double();
-            var lacunarity = (float) _chance.Double() + _chance.Integer(0, 10);
-            var offset = new Vector2(_chance.Integer(-10000, 10000), _chance.Integer(-10000, 10000));
-            var seed = _chance.Integer();
+            var attributes1 = GenerateRandomMapAttributes();
             
-            var attributes1 = new MapAttributes(mapWidth, mapHeight, scale1, octaves, persistence, lacunarity, offset, seed);
-            var attributes2 = new MapAttributes(mapWidth, mapHeight, scale2, octaves, persistence, lacunarity, offset, seed);
+            var attributes2 = attributes1.DeepCopy();
+            attributes2.NoiseScale = (float) _chance.Double() + _chance.Integer(0, 50);
+            
             var result1 = Noise.GenerateNoiseMap(attributes1);
             var result2 = Noise.GenerateNoiseMap(attributes2);
 
 
-            var midHeight = mapHeight / 2;
-            var midWidth = mapWidth / 2;
+            var midHeight = attributes1.MapHeight / 2;
+            var midWidth = attributes1.MapWidth / 2;
             
             var middlePixel1 = result1[midWidth, midHeight];
             var middlePixel2 = result2[midWidth, midHeight];
 
+            Assert.AreEqual(middlePixel1, middlePixel2, $"{attributes1}\n{attributes2}");
             middlePixel1.Should().Be(middlePixel2);
         }
         
         [Test]
         public void GivenGeneratedMap_WhenDecreasingXOffset_ShouldScrollMapRight()
         {
-            var mapWidth = _chance.Integer(2, 100);
-            var mapHeight = _chance.Integer(2, 100);
-            var scale = _chance.Integer(0,10);
-            var octaves = _chance.Integer(1, 8);
-            var persistence = (float) _chance.Double();
-            var lacunarity = (float) _chance.Double() + _chance.Integer(0, 10);
-            var offset = new Vector2(_chance.Integer(-10000, 10000), _chance.Integer(-10000, 10000));
             var offsetDifference = _chance.Integer(-5, 1);
-            var offset2 = new Vector2(offset.x + offsetDifference, offset.y);
-            var seed = _chance.Integer();
+
+            var attributes1 = GenerateRandomMapAttributesForScrollingTests();
             
-            var attributes = new MapAttributes(mapWidth, mapHeight, scale, octaves, persistence, lacunarity, offset, seed);
-            var result1 = Noise.GenerateNoiseMap(attributes);
+            var attributes2 = attributes1.DeepCopy();
+            attributes2.Offset = new Vector2(attributes1.Offset.x + offsetDifference, attributes1.Offset.y);
             
-            var attributes2 = new MapAttributes(mapWidth, mapHeight, scale, octaves, persistence, lacunarity, offset2, seed);
+            var result1 = Noise.GenerateNoiseMap(attributes1);
             var result2 = Noise.GenerateNoiseMap(attributes2);
             
-            for (var x = 0; x < mapWidth + scale * offsetDifference; x++)
+            for (var x = 0; x < attributes1.MapWidth + attributes1.NoiseScale * offsetDifference; x++)
             {
-                for(var y = 0; y < mapHeight; y++)
+                for(var y = 0; y < attributes1.MapHeight; y++)
                 {
-                    Assert.AreEqual(result1[x, y], result2[x - scale * offsetDifference, y]);
+                    var message = $"{attributes1}\n" +
+                                  $"Current x: {x}\n" +
+                                  $"offsetDifference: {offsetDifference}";
+                    Assert.AreEqual(result1[x, y], result2[(int)(x - attributes1.NoiseScale * offsetDifference), y], message);
                 }
             }
         }
@@ -159,28 +120,24 @@ namespace Editor.Tests
         [Test]
         public void GivenGeneratedMap_WhenIncreasingXOffset_ShouldScrollMapLeft()
         {
-            var mapWidth = _chance.Integer(2, 100);
-            var mapHeight = _chance.Integer(2, 100);
-            var scale = _chance.Integer(0,10);
-            var octaves = _chance.Integer(1, 8);
-            var persistence = (float) _chance.Double();
-            var lacunarity = (float) _chance.Double() + _chance.Integer(0, 10);
-            var offset = new Vector2(_chance.Integer(-10000, 10000), _chance.Integer(-10000, 10000));
-            var offsetDifference = _chance.Integer(0, 6);
-            var offset2 = new Vector2(offset.x + offsetDifference, offset.y);
-            var seed = _chance.Integer();
+           var offsetDifference = _chance.Integer(0, 6);
+
+           var attributes1 = GenerateRandomMapAttributesForScrollingTests();
+           
+           var attributes2 = attributes1.DeepCopy();
+           attributes2.Offset = new Vector2(attributes1.Offset.x + offsetDifference, attributes1.Offset.y);
+           
+           var result1 = Noise.GenerateNoiseMap(attributes1);
+           var result2 = Noise.GenerateNoiseMap(attributes2);
             
-            var attributes = new MapAttributes(mapWidth, mapHeight, scale, octaves, persistence, lacunarity, offset, seed);
-            var result1 = Noise.GenerateNoiseMap(attributes);
-            
-            var attributes2 = new MapAttributes(mapWidth, mapHeight, scale, octaves, persistence, lacunarity, offset2, seed);
-            var result2 = Noise.GenerateNoiseMap(attributes2);
-            
-            for (var x = scale * offsetDifference; x < mapWidth; x++)
+            for (var x = (int)(attributes1.MapWidth + attributes1.NoiseScale * offsetDifference); x < attributes1.MapWidth; x++)
             {
-                for(var y = 0; y < mapHeight; y++)
+                for(var y = 0; y < attributes1.MapHeight; y++)
                 {
-                    Assert.AreEqual(result1[x, y], result2[x - scale * offsetDifference, y]);
+                    var message = $"{attributes1}\n" +
+                                  $"Current x: {x}\n" +
+                                  $"offsetDifference: {offsetDifference}";
+                    Assert.AreEqual(result1[x, y], result2[(int)(x - attributes1.NoiseScale * offsetDifference), y], message);
                 }
             }
         }
@@ -188,28 +145,23 @@ namespace Editor.Tests
         [Test]
         public void GivenGeneratedMap_WhenDecreasingYOffset_ShouldScrollMapUp()
         {
-            var mapWidth = _chance.Integer(2, 100);
-            var mapHeight = _chance.Integer(2, 100);
-            var scale = _chance.Integer(0,10);
-            var octaves = _chance.Integer(1, 8);
-            var persistence = (float) _chance.Double();
-            var lacunarity = (float) _chance.Double() + _chance.Integer(0, 10);
-            var offset = new Vector2(_chance.Integer(-10000, 10000), _chance.Integer(-10000, 10000));
             var offsetDifference = _chance.Integer(-5, 1);
-            var offset2 = new Vector2(offset.x, offset.y+ offsetDifference);
-            var seed = _chance.Integer();
-            
-            var attributes = new MapAttributes(mapWidth, mapHeight, scale, octaves, persistence, lacunarity, offset, seed);
-            var result1 = Noise.GenerateNoiseMap(attributes);
-            
-            var attributes2 = new MapAttributes(mapWidth, mapHeight, scale, octaves, persistence, lacunarity, offset2, seed);
+
+            var attributes1 = GenerateRandomMapAttributesForScrollingTests();
+            var attributes2 = attributes1.DeepCopy();
+            attributes2.Offset = new Vector2(attributes1.Offset.x, attributes1.Offset.y + offsetDifference);
+           
+            var result1 = Noise.GenerateNoiseMap(attributes1);
             var result2 = Noise.GenerateNoiseMap(attributes2);
             
-            for (var x = 0; x < mapWidth; x++)
+            for (var x = 0; x < attributes1.MapWidth; x++)
             {
-                for(var y = 0; y < mapHeight + scale * offsetDifference; y++)
+                for(var y = 0; y < attributes1.MapHeight + attributes1.NoiseScale * offsetDifference; y++)
                 {
-                    Assert.AreEqual(result1[x, y], result2[x, y - scale * offsetDifference]);
+                    var message = $"{attributes1}\n" +
+                                  $"Current x: {x}\n" +
+                                  $"offsetDifference: {offsetDifference}";
+                    Assert.AreEqual(result1[x, y], result2[x, (int)(y - attributes1.NoiseScale * offsetDifference)], message);
                 }
             }
         }
@@ -217,28 +169,23 @@ namespace Editor.Tests
         [Test]
         public void GivenGeneratedMap_WhenIncreasingYOffset_ShouldScrollMapDown()
         {
-            var mapWidth = _chance.Integer(2, 100);
-            var mapHeight = _chance.Integer(2, 100);
-            var scale = _chance.Integer(0,10);
-            var octaves = _chance.Integer(1, 8);
-            var persistence = (float) _chance.Double();
-            var lacunarity = (float) _chance.Double() + _chance.Integer(0, 10);
-            var offset = new Vector2(_chance.Integer(-10000, 10000), _chance.Integer(-10000, 10000));
             var offsetDifference = _chance.Integer(0, 6);
-            var offset2 = new Vector2(offset.x, offset.y+ offsetDifference);
-            var seed = _chance.Integer();
-            
-            var attributes = new MapAttributes(mapWidth, mapHeight, scale, octaves, persistence, lacunarity, offset, seed);
-            var result1 = Noise.GenerateNoiseMap(attributes);
-            
-            var attributes2 = new MapAttributes(mapWidth, mapHeight, scale, octaves, persistence, lacunarity, offset2, seed);
+
+            var attributes1 = GenerateRandomMapAttributesForScrollingTests();
+            var attributes2 = attributes1.DeepCopy();
+            attributes2.Offset = new Vector2(attributes1.Offset.x, attributes1.Offset.y + offsetDifference);
+           
+            var result1 = Noise.GenerateNoiseMap(attributes1);
             var result2 = Noise.GenerateNoiseMap(attributes2);
             
-            for (var x = 0; x < mapWidth; x++)
+            for (var x = 0; x < attributes1.MapWidth; x++)
             {
-                for(var y = scale * offsetDifference; y < mapHeight; y++)
+                for(var y = (int)(attributes1.MapHeight + attributes1.NoiseScale * offsetDifference); y < attributes1.MapHeight; y++)
                 {
-                    Assert.AreEqual(result1[x, y], result2[x, y - scale * offsetDifference]);
+                    var message = $"{attributes1}\n" +
+                                  $"Current x: {x}\n" +
+                                  $"offsetDifference: {offsetDifference}";
+                    Assert.AreEqual(result1[x, y], result2[x, (int)(y - attributes1.NoiseScale * offsetDifference)], message);
                 }
             }
         }
@@ -246,44 +193,57 @@ namespace Editor.Tests
         [Test]
         public void GivenGeneratedMap_WhenChangingOnlySeed_ShouldGenerateNewMap()
         {
-            var mapWidth = _chance.Integer(2, 100);
-            var mapHeight = _chance.Integer(2, 100);
-            var scale = (float) _chance.Double() + _chance.Integer(0, 10);
-            var octaves = _chance.Integer(1, 8);
-            var persistence = (float) _chance.Double();
-            var lacunarity = (float) _chance.Double() + _chance.Integer(0, 10);
-            var offset = new Vector2(_chance.Integer(-10000, 10000), _chance.Integer(-10000, 10000));
-            var seed = _chance.Integer();
+            var attributes1 = GenerateRandomMapAttributes();
+            var attributes2 = attributes1.DeepCopy();
+            attributes2.Seed = _chance.Integer();
             
-            var attributes = new MapAttributes(mapWidth, mapHeight, scale, octaves, persistence, lacunarity, offset, seed);
-            var result1 = Noise.GenerateNoiseMap(attributes);
+            
+            var result1 = Noise.GenerateNoiseMap(attributes1);
+            var result2 = Noise.GenerateNoiseMap(attributes2);
 
-            attributes.Seed = _chance.Integer();
-            var result2 = Noise.GenerateNoiseMap(attributes);
-
-            Assert.AreNotEqual(result1, result2);
+            Assert.AreNotEqual(result1, result2, $"{attributes1}\n{attributes2}");
         }
 
         [Test]
         public void GivenConstantSeed_WhenRegeneratingMap_ShouldGenerateSameMap()
         {
-            var mapWidth = _chance.Integer(2, 100);
-            var mapHeight = _chance.Integer(2, 100);
-            var scale = (float) _chance.Double() + _chance.Integer(0, 10);
-            var octaves = _chance.Integer(1, 8);
-            var persistence = (float) _chance.Double();
-            var lacunarity = (float) _chance.Double() + _chance.Integer(0, 10);
-            var offset = new Vector2(_chance.Integer(-10000, 10000), _chance.Integer(-10000, 10000));
-            var seed = _chance.Integer();
+            var attributes = GenerateRandomMapAttributes();
+            var attributes2 = attributes.DeepCopy();
             
-            
-            var attributes = new MapAttributes(mapWidth, mapHeight, scale, octaves, persistence, lacunarity, offset, seed);
             var result1 = Noise.GenerateNoiseMap(attributes);
-            var result2 = Noise.GenerateNoiseMap(attributes);
+            var result2 = Noise.GenerateNoiseMap(attributes2);
             
             Assert.AreEqual(result1, result2);
         }
+
+        private MapAttributes GenerateRandomMapAttributes()
+        {
+            return _fixture.Build<MapAttributes>()
+                .With(attributes => attributes.MapWidth, _chance.Integer(2, 100))
+                .With(attributes => attributes.MapHeight, _chance.Integer(2, 100))
+                .With(attributes => attributes.NoiseScale, (float) _chance.Double() + _chance.Integer(0, 50))
+                .With(attributes => attributes.Octaves, _chance.Integer(1, 10))
+                .With(attributes => attributes.Persistence, (float) _chance.Double())
+                .With(attributes => attributes.Lacunarity, (float) _chance.Double() + _chance.Integer(0, 10))
+                .With(attributes => attributes.Offset, new Vector2(_chance.Integer(-10000, 10000), _chance.Integer(-10000, 10000)))
+                .Create();
+        } 
         
+        private MapAttributes GenerateRandomMapAttributesForScrollingTests()
+        {
+            var attributes = GenerateRandomMapAttributes();
+            //map must be wider than 2 * max scale * offset difference
+            var largeEnoughWidth = _chance.Integer(51, 100);
+            var largeEnoughHeight = _chance.Integer(51, 100);
+            //reverse scaling calculation is not exact when scale is not integer
+            var integerScale = _chance.Integer(1, 5);
+            
+            attributes.MapWidth = largeEnoughWidth;
+            attributes.MapHeight = largeEnoughHeight;
+            attributes.NoiseScale = integerScale;
+
+            return attributes;
+        }
         
 
     }

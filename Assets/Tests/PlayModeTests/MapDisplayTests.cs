@@ -3,10 +3,9 @@ using ChanceNET;
 using FluentAssertions;
 using NSubstitute;
 using UnityEngine;
-using Scenes.Scripts;
 using UnityEngine.TestTools;
 
-namespace Editor.Tests
+namespace Tests.PlayModeTests
 {
     public class MapDisplayTests
     {

@@ -1,9 +1,8 @@
 ﻿using NUnit.Framework;
 using NUnit.Framework.Internal;
-using Scenes.Scripts;
 using UnityEngine;
 
-namespace Editor.Tests
+namespace Tests.EditModeTests
 {
     public class MapDisplayControllerTests
     {
