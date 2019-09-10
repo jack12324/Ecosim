@@ -1,39 +1,36 @@
 using UnityEngine;
 
-namespace Scenes.Scripts
+public interface IMapDisplayContainer
 {
-    public interface IMapDisplayContainer
-    {
-        void DrawNoiseMap(float[,] noiseMap);
-    }
-    public class MapDisplay : MonoBehaviour, IMapDisplayContainer
-    {
+    void DrawNoiseMap(float[,] noiseMap);
+}
+public class MapDisplay : MonoBehaviour, IMapDisplayContainer
+{
     
-        public Renderer textureRenderer;
-        private IMapDisplayController _mapDisplayController;
+    public Renderer textureRenderer;
+    private IMapDisplayController _mapDisplayController;
 
-        public void Construct(IMapDisplayController mapDisplayController, Renderer textureRenderer)
-        {
-            this.textureRenderer = textureRenderer;
-            _mapDisplayController = mapDisplayController;
-        }
+    public void Construct(IMapDisplayController mapDisplayController, Renderer mapTextureRenderer)
+    {
+        this.textureRenderer = mapTextureRenderer;
+        _mapDisplayController = mapDisplayController;
+    }
 
-        public void DrawNoiseMap(float[,] noiseMap)
-        {
-            CreateController();
+    public void DrawNoiseMap(float[,] noiseMap)
+    {
+        CreateController();
         
-            var texture2D = _mapDisplayController.GenerateTexture(noiseMap);
+        var texture2D = _mapDisplayController.GenerateTexture(noiseMap);
         
-            textureRenderer.sharedMaterial.mainTexture = texture2D;
-            textureRenderer.transform.localScale = new Vector3(texture2D.width, 1, texture2D.height);
-        }
+        textureRenderer.sharedMaterial.mainTexture = texture2D;
+        textureRenderer.transform.localScale = new Vector3(texture2D.width, 1, texture2D.height);
+    }
 
-        private void CreateController()
+    private void CreateController()
+    {
+        if (_mapDisplayController is null)
         {
-            if (_mapDisplayController is null)
-            {
-                _mapDisplayController = new MapDisplayController();
-            }
+            _mapDisplayController = new MapDisplayController();
         }
     }
 }

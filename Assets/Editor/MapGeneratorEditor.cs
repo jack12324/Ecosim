@@ -1,5 +1,4 @@
-﻿using Scenes.Scripts;
-using UnityEngine;
+﻿using UnityEngine;
 using UnityEditor;
 
 namespace Editor
