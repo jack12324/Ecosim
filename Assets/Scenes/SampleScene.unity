@@ -243,9 +243,9 @@ MonoBehaviour:
   drawMode: 1
   mapWidth: 100
   mapHeight: 100
-  noiseScale: 15
+  noiseScale: 25
   autoUpdate: 1
-  octaves: 4
+  octaves: 5
   persistence: 0.5
   lacunarity: 2
   seed: 0
@@ -253,7 +253,7 @@ MonoBehaviour:
   offsetY: 0
   regions:
   - name: Water
-    maxHeight: 4
+    maxHeight: 0.4
     color: {r: 0.12517802, g: 0.317662, b: 0.9150943, a: 0}
   - name: Land
     maxHeight: 1

@@ -9,6 +9,8 @@ public static class TextureGenerator
         var texture2D = new Texture2D(width, height);
 
         texture2D.SetPixels(colorMap);
+        texture2D.filterMode = FilterMode.Point;
+        texture2D.wrapMode = TextureWrapMode.Clamp;
         texture2D.Apply();
         return texture2D;
     }
