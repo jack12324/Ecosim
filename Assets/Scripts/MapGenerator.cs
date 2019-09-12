@@ -22,8 +22,8 @@ public partial class MapGenerator : MonoBehaviour
         
     public float lacunarity;
     public int seed;
-    public int offsetX;
-    public int offsetY;
+    public float offsetX;
+    public float offsetY;
 
     public TerrainType[] regions;
 
