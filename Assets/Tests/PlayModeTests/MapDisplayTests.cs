@@ -3,6 +3,8 @@ using System.Net.Mime;
 using ChanceNET;
 using FluentAssertions;
 using NSubstitute;
+using NUnit.Framework;
+using UnityEditor.VersionControl;
 using UnityEngine;
 using UnityEngine.TestTools;
 
@@ -21,6 +23,7 @@ namespace Tests.PlayModeTests
             
             var gameObject = new GameObject();
             _sut = gameObject.AddComponent<MapDisplay>();
+            _sut.textureRenderer = GetMockTextureRenderer();
             
             _expectedTexture = GetMockExpectedTexture();
         }
@@ -40,14 +43,14 @@ namespace Tests.PlayModeTests
         [UnityTest]
         public IEnumerator GivenNoiseMap_WhenCallingDrawNoiseMap_ThenShouldSetTextureSize()
         {
-            _sut.textureRenderer.transform.localScale.Should().BeEquivalentTo(Vector3.one);
+            Assert.AreEqual(Vector3.one, _sut.textureRenderer.transform.localScale);
             
             _sut.DrawTexture(_expectedTexture);
             yield return null;
             
             var expectedScale = new Vector3(_expectedTexture.width,1, _expectedTexture.height);
             
-            _sut.textureRenderer.transform.localScale.Should().BeEquivalentTo(expectedScale);
+            Assert.AreEqual(expectedScale, _sut.textureRenderer.transform.localScale);
             
         }
 
@@ -63,6 +66,14 @@ namespace Tests.PlayModeTests
             }
             texture.Apply();
             return texture;
+        } 
+        private Renderer GetMockTextureRenderer()
+        {
+            var renderer = Resources.Load<Renderer>("Tests/MapDisplay");
+            renderer.sharedMaterial.mainTexture = default;
+            renderer.transform.localScale = Vector3.one;
+            
+            return renderer;
         }
     }
 }

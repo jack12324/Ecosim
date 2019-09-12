@@ -1,6 +1,5 @@
-using System;
+using System.Linq;
 using UnityEngine;
-using UnityEngine.Serialization;
 
 public partial class MapGenerator : MonoBehaviour
 {
@@ -18,7 +17,7 @@ public partial class MapGenerator : MonoBehaviour
     public bool autoUpdate;
     public int octaves;
         
-    [Range(0, 1)]
+    [UnityEngine.Range(0, 1)]
     public float persistence;
         
     public float lacunarity;
@@ -67,19 +66,16 @@ public partial class MapGenerator : MonoBehaviour
 
     private  Color FindTerrainColor(float noiseHeight)
     {
-        var currentColor = Color.white;
-        foreach (var region in regions)
+        var sortedRegions = regions.OrderBy(region => region.maxHeight).ToList();
+
+        foreach (var region in sortedRegions)
         {
             if (noiseHeight <= region.maxHeight)
             {
-                currentColor = region.color;
-            }
-            else if (noiseHeight > region.maxHeight)
-            {
-                return currentColor;
+                return region.color;
             }
         }
-        return currentColor;
+        return Color.white;
     }
 
 

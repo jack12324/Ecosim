@@ -1,6 +1,7 @@
 ﻿using NUnit.Framework;
 using NUnit.Framework.Internal;
 using UnityEngine;
+using Random = System.Random;
 
 namespace Tests.EditModeTests
 {
@@ -8,22 +9,29 @@ namespace Tests.EditModeTests
     {
         private readonly Randomizer _random;
         private readonly float[,] _noiseMap;
+        private readonly Color[] _colorMap;
+        private readonly int _colorMapWidth;
+        private readonly int _colorMapHeight;
 
         public TextureGeneratorTests()
         {
             _random = new Randomizer();
-            _noiseMap = GenerateTestNoiseMap();
+            _noiseMap = GenerateTestHeightMap();
+            
+            _colorMapWidth = _random.Next(2, 50);
+            _colorMapHeight = _random.Next(2, 50);
+            _colorMap = GenerateTestColorMap(_colorMapWidth, _colorMapHeight);
         }
 
         [Test]
-        public void GivenNoiseMap_WhenCallingGenerateTexture_ThenReturnsATexture()
+        public void GivenHeightMap_WhenCallingTextureFromHeightMap_ThenReturnsATexture()
         {
             var textureResult = TextureGenerator.TextureFromHeightMap(_noiseMap);
             Assert.NotNull(textureResult);
         }
 
         [Test]
-        public void GivenNoiseMap_WhenCallingGenerateTexture_ThenReturnsATextureOfTheExpectedSize()
+        public void GivenHeightMap_WhenCallingTextureFromHeightMap_ThenReturnsATextureOfTheExpectedSize()
         {
             var textureResult = TextureGenerator.TextureFromHeightMap(_noiseMap);
 
@@ -35,22 +43,25 @@ namespace Tests.EditModeTests
         }
 
         [Test]
-        public void GivenNoiseMap_WhenCallingGenerateTexture_ThenReturnsATextureWithBlackAndWhitePixels()
+        public void GivenColorMap_WhenCallingTextureFromColorMap_ThenReturnsATexture()
         {
-            var textureResult = TextureGenerator.TextureFromHeightMap(_noiseMap);
-            var pixels = textureResult.GetPixels();
-
-            foreach (var pixel in pixels)
-            {
-                Assert.AreEqual(pixel.r, pixel.g);
-                Assert.AreEqual(pixel.r, pixel.b);
-            }   
+            var textureResult = TextureGenerator.TextureFromColorMap(_colorMap, _colorMapWidth, _colorMapHeight);
+            Assert.NotNull(textureResult);
         }
 
-        private float[,] GenerateTestNoiseMap()
+        [Test]
+        public void GivenColorMap_WhenCallingTextureFromColorMap_ThenReturnsATextureOfTheExpectedSize()
         {
-            var mapWidth = _random.Next(2, 15);
-            var mapHeight = _random.Next(2, 15);
+            var textureResult = TextureGenerator.TextureFromColorMap(_colorMap, _colorMapWidth, _colorMapHeight);
+
+            Assert.AreEqual(_colorMapWidth, textureResult.width);
+            Assert.AreEqual(_colorMapHeight, textureResult.height);
+        }
+
+        private float[,] GenerateTestHeightMap()
+        {
+            var mapWidth = _random.Next(2, 50);
+            var mapHeight = _random.Next(2, 50);
             var scale = _random.NextFloat();
             
             var noiseMap = new float[mapWidth, mapHeight];
@@ -68,6 +79,18 @@ namespace Tests.EditModeTests
             }
 
             return noiseMap;
+        }
+
+        private Color[] GenerateTestColorMap(int colorMapWidth, int colorMapHeight)
+        {
+
+            var colorMap = new Color[colorMapHeight * colorMapWidth];
+            for (var i = 0; i < colorMap.Length; i++)
+            {
+                colorMap[i] = new Color(_random.Next(0, 256), _random.Next(0, 256), _random.Next(0, 256));
+            }
+
+            return colorMap;
         }
     }
 }
