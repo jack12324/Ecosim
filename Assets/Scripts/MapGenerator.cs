@@ -1,7 +1,17 @@
+using System;
 using UnityEngine;
+using UnityEngine.Serialization;
 
-public class MapGenerator : MonoBehaviour
+public partial class MapGenerator : MonoBehaviour
 {
+    public enum DrawMode
+    {
+        NoiseMap = 0,
+        ColorMap = 1
+    };
+
+    public DrawMode drawMode;
+
     public int mapWidth;
     public int mapHeight;
     public float noiseScale;
@@ -16,15 +26,34 @@ public class MapGenerator : MonoBehaviour
     public int offsetX;
     public int offsetY;
 
+    public TerrainType[] regions;
+
 
     public void GenerateMap()
     {
         var offset = new Vector2(offsetX, offsetY);
         var mapAttributes = new MapAttributes(mapWidth, mapHeight, noiseScale, octaves, persistence, lacunarity, offset, seed);
         var noiseMap = Noise.GenerateNoiseMap(mapAttributes);
+        
+        var colorMap = new Color[mapAttributes.MapWidth * mapAttributes.MapHeight];
+        for (var y = 0; y < mapAttributes.MapHeight; y++)
+        {
+            for (var x = 0; x < mapAttributes.MapWidth; x++)
+            {
+                colorMap[y * mapAttributes.MapWidth + x] = FindTerrainColor(noiseMap[x, y]);
+            }
+        }
 
         var mapDisplay= GetComponent<MapDisplay>();
-        mapDisplay.DrawNoiseMap(noiseMap);
+
+        if (drawMode == DrawMode.NoiseMap)
+        {
+            mapDisplay.DrawTexture(TextureGenerator.TextureFromHeightMap(noiseMap));
+        }
+        else if (drawMode == DrawMode.ColorMap)
+        {
+            mapDisplay.DrawTexture(TextureGenerator.TextureFromColorMap(colorMap, mapAttributes.MapWidth, mapAttributes.MapHeight));
+        }
     }
 
     private void OnValidate()
@@ -35,4 +64,23 @@ public class MapGenerator : MonoBehaviour
         lacunarity = lacunarity < 1 ? 1 : lacunarity;
         noiseScale = noiseScale < 0 ? 0 : noiseScale;
     }
+
+    private  Color FindTerrainColor(float noiseHeight)
+    {
+        var currentColor = Color.white;
+        foreach (var region in regions)
+        {
+            if (noiseHeight <= region.maxHeight)
+            {
+                currentColor = region.color;
+            }
+            else if (noiseHeight > region.maxHeight)
+            {
+                return currentColor;
+            }
+        }
+        return currentColor;
+    }
+
+
 }

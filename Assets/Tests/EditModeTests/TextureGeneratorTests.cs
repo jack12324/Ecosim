@@ -4,30 +4,28 @@ using UnityEngine;
 
 namespace Tests.EditModeTests
 {
-    public class MapDisplayControllerTests
+    public class TextureGeneratorTests
     {
         private readonly Randomizer _random;
         private readonly float[,] _noiseMap;
-        private readonly MapDisplayController _sut;
 
-        public MapDisplayControllerTests()
+        public TextureGeneratorTests()
         {
             _random = new Randomizer();
             _noiseMap = GenerateTestNoiseMap();
-            _sut = new MapDisplayController();
         }
 
         [Test]
         public void GivenNoiseMap_WhenCallingGenerateTexture_ThenReturnsATexture()
         {
-            var textureResult = _sut.GenerateTexture(_noiseMap);
+            var textureResult = TextureGenerator.TextureFromHeightMap(_noiseMap);
             Assert.NotNull(textureResult);
         }
 
         [Test]
         public void GivenNoiseMap_WhenCallingGenerateTexture_ThenReturnsATextureOfTheExpectedSize()
         {
-            var textureResult = _sut.GenerateTexture(_noiseMap);
+            var textureResult = TextureGenerator.TextureFromHeightMap(_noiseMap);
 
             var expectedWidth = _noiseMap.GetLength(0);
             var expectedHeight = _noiseMap.GetLength(1);
@@ -39,7 +37,7 @@ namespace Tests.EditModeTests
         [Test]
         public void GivenNoiseMap_WhenCallingGenerateTexture_ThenReturnsATextureWithBlackAndWhitePixels()
         {
-            var textureResult = _sut.GenerateTexture(_noiseMap);
+            var textureResult = TextureGenerator.TextureFromHeightMap(_noiseMap);
             var pixels = textureResult.GetPixels();
 
             foreach (var pixel in pixels)
