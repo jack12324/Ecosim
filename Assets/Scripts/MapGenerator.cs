@@ -39,7 +39,7 @@ public partial class MapGenerator : MonoBehaviour
         {
             for (var x = 0; x < mapAttributes.MapWidth; x++)
             {
-                colorMap[y * mapAttributes.MapWidth + x] = FindTerrainColor(noiseMap[x, y]);
+                colorMap[y * mapAttributes.MapWidth + x] = TextureGenerator.FindTerrainColor(noiseMap[x, y], regions);
             }
         }
 
@@ -63,20 +63,4 @@ public partial class MapGenerator : MonoBehaviour
         lacunarity = lacunarity < 1 ? 1 : lacunarity;
         noiseScale = noiseScale < 0 ? 0 : noiseScale;
     }
-
-    private  Color FindTerrainColor(float noiseHeight)
-    {
-        var sortedRegions = regions.OrderBy(region => region.maxHeight).ToList();
-
-        foreach (var region in sortedRegions)
-        {
-            if (noiseHeight <= region.maxHeight)
-            {
-                return region.color;
-            }
-        }
-        return Color.white;
-    }
-
-
 }

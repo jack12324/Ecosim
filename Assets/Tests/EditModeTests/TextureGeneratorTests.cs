@@ -58,6 +58,78 @@ namespace Tests.EditModeTests
             Assert.AreEqual(_colorMapHeight, textureResult.height);
         }
 
+        [Test]
+        public void GivenHeightAndTerrainTypesInOrder_WhenCallingFindTerrainColor_ThenReturnCorrectColor()
+        {
+            var terrains = new TerrainType[]
+            {
+                new TerrainType {maxHeight = .25f, color = Color.blue},
+                new TerrainType {maxHeight = .5f, color = Color.black},
+                new TerrainType {maxHeight = .75f, color = Color.gray},
+                new TerrainType {maxHeight = 1, color = Color.red}
+            };
+            var expectedColorBlue = TextureGenerator.FindTerrainColor(.2f, terrains);
+            var expectedColorBlack = TextureGenerator.FindTerrainColor(.3f, terrains);
+            var expectedColorGray = TextureGenerator.FindTerrainColor(.6f, terrains);
+            var expectedColorRed = TextureGenerator.FindTerrainColor(.8f, terrains);
+            
+            Assert.AreEqual(Color.blue, expectedColorBlue);
+            Assert.AreEqual(Color.black, expectedColorBlack);
+            Assert.AreEqual(Color.gray, expectedColorGray);
+            Assert.AreEqual(Color.red, expectedColorRed);
+        }
+
+        [Test]
+        public void GivenHeightAndTerrainTypesOutOfOrder_WhenCallingFindTerrainColor_ThenReturnCorrectColor()
+        {
+            var terrains = new TerrainType[]
+            {
+                new TerrainType {maxHeight = .75f, color = Color.gray},
+                new TerrainType {maxHeight = 1, color = Color.red},
+                new TerrainType {maxHeight = .25f, color = Color.blue},
+                new TerrainType {maxHeight = .5f, color = Color.black}
+            };
+            var expectedColorBlue = TextureGenerator.FindTerrainColor(.2f, terrains);
+            var expectedColorBlack = TextureGenerator.FindTerrainColor(.3f, terrains);
+            var expectedColorGray = TextureGenerator.FindTerrainColor(.6f, terrains);
+            var expectedColorRed = TextureGenerator.FindTerrainColor(.8f, terrains);
+            
+            Assert.AreEqual(Color.blue, expectedColorBlue);
+            Assert.AreEqual(Color.black, expectedColorBlack);
+            Assert.AreEqual(Color.gray, expectedColorGray);
+            Assert.AreEqual(Color.red, expectedColorRed);
+        }
+
+        [Test]
+        public void GivenHeightAndTerrainTypes_WhenCallingFindTerrainColorAndHeightIsAtCutoff_ThenReturnCorrectColor()
+        {
+            var terrains = new TerrainType[]
+            {
+                new TerrainType {maxHeight = .75f, color = Color.gray},
+                new TerrainType {maxHeight = 1, color = Color.red},
+                new TerrainType {maxHeight = .25f, color = Color.blue},
+                new TerrainType {maxHeight = .5f, color = Color.black}
+            };
+            var expectedColorRed = TextureGenerator.FindTerrainColor(1, terrains);
+            
+            Assert.AreEqual(Color.red, expectedColorRed);
+        }
+
+        [Test]
+        public void GivenHeightAndTerrainTypes_WhenCallingFindTerrainColorAndHeightIsNotValid_ThenReturnWhite()
+        {
+            var terrains = new TerrainType[]
+            {
+                new TerrainType {maxHeight = .75f, color = Color.gray},
+                new TerrainType {maxHeight = 1, color = Color.red},
+                new TerrainType {maxHeight = .25f, color = Color.blue},
+                new TerrainType {maxHeight = .5f, color = Color.black}
+            };
+            var expectedColorWhite = TextureGenerator.FindTerrainColor(33, terrains);
+            
+            Assert.AreEqual(Color.white, expectedColorWhite);
+        }
+
         private float[,] GenerateTestHeightMap()
         {
             var mapWidth = _random.Next(2, 50);
