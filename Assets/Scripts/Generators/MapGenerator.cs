@@ -1,4 +1,5 @@
 using System.Linq;
+using Generators;
 using UnityEngine;
 
 public partial class MapGenerator : MonoBehaviour
@@ -6,7 +7,8 @@ public partial class MapGenerator : MonoBehaviour
     public enum DrawMode
     {
         NoiseMap = 0,
-        ColorMap = 1
+        ColorMap = 1,
+        Mesh = 2
     };
 
     public DrawMode drawMode;
@@ -45,6 +47,11 @@ public partial class MapGenerator : MonoBehaviour
         else if (drawMode == DrawMode.ColorMap)
         {
             mapDisplay.DrawTexture(TextureGenerator.TextureFromColorMap(colorMap, mapAttributes.MapWidth, mapAttributes.MapHeight));
+        }
+        else if (drawMode == DrawMode.Mesh)
+        {
+            mapDisplay.DrawMesh(MeshGenerator.GenerateTerrainMesh(noiseMap),
+                TextureGenerator.TextureFromColorMap(colorMap, mapAttributes.MapWidth, mapAttributes.MapHeight));
         }
     }
 
