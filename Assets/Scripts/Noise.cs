@@ -6,7 +6,7 @@ public static class Noise
 {
     public static float[,] GenerateNoiseMap(MapAttributes attributes)
     {
-        var noiseMap = new float[attributes.MapWidth, attributes.MapHeight];
+        var noiseMap = new float[attributes.MapHeight, attributes.MapWidth];
         var random = new Random(attributes.Seed);
         var octaveOffsets = new Vector2[attributes.Octaves];
             
@@ -34,9 +34,9 @@ public static class Noise
             maxAmplitude = (float)(1 - Math.Pow(attributes.Persistence, attributes.Octaves)) / (1 - attributes.Persistence);
         }
 
-        for (var y = 0; y < attributes.MapHeight; y++)
+        for (var row= 0; row< attributes.MapHeight; row++)
         {
-            for (var x = 0; x < attributes.MapWidth; x++)
+            for (var col = 0; col < attributes.MapWidth; col++)
             {
                 var noiseHeight = 0f;
                 var amplitude = 1f;
@@ -44,8 +44,8 @@ public static class Noise
                     
                 for (var octave = 0; octave < attributes.Octaves; octave++)
                 {
-                    var xSample = ((x - halfWidth) / attributes.NoiseScale + octaveOffsets[octave].x) * frequency ;
-                    var ySample = ((y - halfHeight) / attributes.NoiseScale + octaveOffsets[octave].y) * frequency ;
+                    var ySample = ((row- halfHeight) / attributes.NoiseScale + octaveOffsets[octave].y) * frequency ;
+                    var xSample = ((col - halfWidth) / attributes.NoiseScale + octaveOffsets[octave].x) * frequency ;
 
                     var perlinValue = Mathf.PerlinNoise(xSample, ySample) * 2 - 1;
 
@@ -62,7 +62,7 @@ public static class Noise
                     frequency *= attributes.Lacunarity;
                 }
                     
-                noiseMap[x, y] = Mathf.InverseLerp(-maxAmplitude, maxAmplitude, noiseHeight);
+                noiseMap[row, col] = Mathf.InverseLerp(-maxAmplitude, maxAmplitude, noiseHeight);
             }
         }
             

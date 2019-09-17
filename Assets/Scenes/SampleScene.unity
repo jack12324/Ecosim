@@ -192,7 +192,7 @@ Transform:
   m_GameObject: {fileID: 952307933}
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 100, y: 1, z: 100}
+  m_LocalScale: {x: 246, y: 1, z: 200}
   m_Children: []
   m_Father: {fileID: 0}
   m_RootOrder: 1
@@ -240,16 +240,42 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 623e866802824c7f820f440c903652f8, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  mapWidth: 100
-  mapHeight: 100
-  noiseScale: 15
+  drawMode: 1
+  mapWidth: 246
+  mapHeight: 200
+  noiseScale: 66.69
   autoUpdate: 1
-  octaves: 4
+  octaves: 7
   persistence: 0.5
   lacunarity: 2
-  seed: 0
-  offsetX: 0
-  offsetY: 0
+  seed: 56
+  offsetX: 14.55
+  offsetY: 7.8
+  regions:
+  - name: Mountain Peak
+    maxHeight: 1
+    color: {r: 1, g: 1, b: 1, a: 0}
+  - name: High Rock
+    maxHeight: 0.68
+    color: {r: 0.6698113, g: 0.6698113, b: 0.6698113, a: 0}
+  - name: Rock
+    maxHeight: 0.62
+    color: {r: 0.4245283, g: 0.4245283, b: 0.4245283, a: 0}
+  - name: Grass
+    maxHeight: 0.56
+    color: {r: 0, g: 0.32156864, b: 0, a: 0}
+  - name: Sand
+    maxHeight: 0.35
+    color: {r: 0.9708871, g: 1, b: 0.7122642, a: 0}
+  - name: Shallow Water
+    maxHeight: 0.3
+    color: {r: 0, g: 0.69635004, b: 0.9528302, a: 0}
+  - name: Water
+    maxHeight: 0.28
+    color: {r: 0.0039604935, g: 0.57648224, b: 0.8396226, a: 0}
+  - name: Deep Water
+    maxHeight: 0.26
+    color: {r: 0.009478444, g: 0.27979887, b: 0.6698113, a: 0}
 --- !u!4 &1920654340
 Transform:
   m_ObjectHideFlags: 0
@@ -258,7 +284,7 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1920654337}
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalPosition: {x: 0, y: 0, z: 3}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children: []
   m_Father: {fileID: 0}

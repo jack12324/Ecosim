@@ -24,8 +24,8 @@ namespace Tests.EditModeTests
             
             var result = Noise.GenerateNoiseMap(attributes);
 
-            Assert.AreEqual(attributes.MapWidth, result.GetLength(0), attributes.ToString());
-            Assert.AreEqual(attributes.MapHeight, result.GetLength(1), attributes.ToString());
+            Assert.AreEqual(attributes.MapWidth, result.GetLength(1), attributes.ToString());
+            Assert.AreEqual(attributes.MapHeight, result.GetLength(0), attributes.ToString());
         }
 
         [Test]
@@ -35,7 +35,7 @@ namespace Tests.EditModeTests
             var result = Noise.GenerateNoiseMap(attributes);
 
             var firstPixel = result[0, 0];
-            var testPixel = result[_chance.Integer(1, attributes.MapWidth), _chance.Integer(1, attributes.MapHeight)];
+            var testPixel = result[_chance.Integer(1, attributes.MapHeight), _chance.Integer(1, attributes.MapWidth)];
 
             Assert.AreNotEqual(firstPixel,testPixel, attributes.ToString());
         }
@@ -82,11 +82,11 @@ namespace Tests.EditModeTests
             var result2 = Noise.GenerateNoiseMap(attributes2);
 
 
-            var midHeight = attributes1.MapHeight / 2;
-            var midWidth = attributes1.MapWidth / 2;
+            var midRow = attributes1.MapHeight / 2;
+            var midCol = attributes1.MapWidth / 2;
             
-            var middlePixel1 = result1[midWidth, midHeight];
-            var middlePixel2 = result2[midWidth, midHeight];
+            var middlePixel1 = result1[midRow, midCol];
+            var middlePixel2 = result2[midRow, midCol];
 
             Assert.AreEqual(middlePixel1, middlePixel2, $"{attributes1}\n{attributes2}");
             middlePixel1.Should().Be(middlePixel2);
@@ -105,14 +105,14 @@ namespace Tests.EditModeTests
             var result1 = Noise.GenerateNoiseMap(attributes1);
             var result2 = Noise.GenerateNoiseMap(attributes2);
             
-            for (var x = 0; x < attributes1.MapWidth + attributes1.NoiseScale * offsetDifference; x++)
+            for (var row = 0; row < attributes1.MapHeight; row++)
             {
-                for(var y = 0; y < attributes1.MapHeight; y++)
+                for(var col = 0; col < attributes1.MapWidth+ attributes1.NoiseScale * offsetDifference; col++)
                 {
                     var message = $"{attributes1}\n" +
-                                  $"Current x: {x}\n" +
+                                  $"Current col: {col}\n" +
                                   $"offsetDifference: {offsetDifference}";
-                    Assert.AreEqual(result1[x, y], result2[(int)(x - attributes1.NoiseScale * offsetDifference), y], message);
+                    Assert.AreEqual(result1[row, col], result2[row, (int)(col - attributes1.NoiseScale * offsetDifference)], message);
                 }
             }
         }
@@ -130,14 +130,14 @@ namespace Tests.EditModeTests
            var result1 = Noise.GenerateNoiseMap(attributes1);
            var result2 = Noise.GenerateNoiseMap(attributes2);
             
-            for (var x = (int)(attributes1.MapWidth + attributes1.NoiseScale * offsetDifference); x < attributes1.MapWidth; x++)
+            for (var row = 0; row < attributes1.MapHeight; row++)
             {
-                for(var y = 0; y < attributes1.MapHeight; y++)
+                for(var col = (int)(attributes1.MapWidth + attributes1.NoiseScale * offsetDifference); col < attributes1.MapWidth; col++)
                 {
                     var message = $"{attributes1}\n" +
-                                  $"Current x: {x}\n" +
+                                  $"Current col: {col}\n" +
                                   $"offsetDifference: {offsetDifference}";
-                    Assert.AreEqual(result1[x, y], result2[(int)(x - attributes1.NoiseScale * offsetDifference), y], message);
+                    Assert.AreEqual(result1[row, col], result2[row, (int)(col - attributes1.NoiseScale * offsetDifference)], message);
                 }
             }
         }
@@ -154,14 +154,14 @@ namespace Tests.EditModeTests
             var result1 = Noise.GenerateNoiseMap(attributes1);
             var result2 = Noise.GenerateNoiseMap(attributes2);
             
-            for (var x = 0; x < attributes1.MapWidth; x++)
+            for (var row = 0; row < attributes1.MapHeight + attributes1.NoiseScale * offsetDifference; row++)
             {
-                for(var y = 0; y < attributes1.MapHeight + attributes1.NoiseScale * offsetDifference; y++)
+                for(var col = 0; col < attributes1.MapWidth; col++)
                 {
                     var message = $"{attributes1}\n" +
-                                  $"Current x: {x}\n" +
+                                  $"Current row: {row}\n" +
                                   $"offsetDifference: {offsetDifference}";
-                    Assert.AreEqual(result1[x, y], result2[x, (int)(y - attributes1.NoiseScale * offsetDifference)], message);
+                    Assert.AreEqual(result1[row, col], result2[(int)(row - attributes1.NoiseScale * offsetDifference), col],  message);
                 }
             }
         }
@@ -178,14 +178,14 @@ namespace Tests.EditModeTests
             var result1 = Noise.GenerateNoiseMap(attributes1);
             var result2 = Noise.GenerateNoiseMap(attributes2);
             
-            for (var x = 0; x < attributes1.MapWidth; x++)
+            for (var row = (int)(attributes1.MapHeight + attributes1.NoiseScale * offsetDifference); row < attributes1.MapHeight; row++)
             {
-                for(var y = (int)(attributes1.MapHeight + attributes1.NoiseScale * offsetDifference); y < attributes1.MapHeight; y++)
+                for(var col = 0; col < attributes1.MapWidth; col++)
                 {
                     var message = $"{attributes1}\n" +
-                                  $"Current x: {x}\n" +
+                                  $"Current row: {row}\n" +
                                   $"offsetDifference: {offsetDifference}";
-                    Assert.AreEqual(result1[x, y], result2[x, (int)(y - attributes1.NoiseScale * offsetDifference)], message);
+                    Assert.AreEqual(result1[row, col], result2[(int)(row - attributes1.NoiseScale * offsetDifference), col], message);
                 }
             }
         }

@@ -1,20 +1,31 @@
+using System.Linq;
 using UnityEngine;
 
-public class MapGenerator : MonoBehaviour
+public partial class MapGenerator : MonoBehaviour
 {
+    public enum DrawMode
+    {
+        NoiseMap = 0,
+        ColorMap = 1
+    };
+
+    public DrawMode drawMode;
+
     public int mapWidth;
     public int mapHeight;
     public float noiseScale;
     public bool autoUpdate;
     public int octaves;
         
-    [Range(0, 1)]
+    [UnityEngine.Range(0, 1)]
     public float persistence;
         
     public float lacunarity;
     public int seed;
-    public int offsetX;
-    public int offsetY;
+    public float offsetX;
+    public float offsetY;
+
+    public TerrainType[] regions;
 
 
     public void GenerateMap()
@@ -23,8 +34,18 @@ public class MapGenerator : MonoBehaviour
         var mapAttributes = new MapAttributes(mapWidth, mapHeight, noiseScale, octaves, persistence, lacunarity, offset, seed);
         var noiseMap = Noise.GenerateNoiseMap(mapAttributes);
 
+        var colorMap = TextureGenerator.ColorMapFromTerrains(noiseMap, regions);
+
         var mapDisplay= GetComponent<MapDisplay>();
-        mapDisplay.DrawNoiseMap(noiseMap);
+
+        if (drawMode == DrawMode.NoiseMap)
+        {
+            mapDisplay.DrawTexture(TextureGenerator.TextureFromHeightMap(noiseMap));
+        }
+        else if (drawMode == DrawMode.ColorMap)
+        {
+            mapDisplay.DrawTexture(TextureGenerator.TextureFromColorMap(colorMap, mapAttributes.MapWidth, mapAttributes.MapHeight));
+        }
     }
 
     private void OnValidate()

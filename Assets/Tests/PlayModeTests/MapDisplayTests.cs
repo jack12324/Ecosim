@@ -1,7 +1,10 @@
 ﻿using System.Collections;
+using System.Net.Mime;
 using ChanceNET;
 using FluentAssertions;
 using NSubstitute;
+using NUnit.Framework;
+using UnityEditor.VersionControl;
 using UnityEngine;
 using UnityEngine.TestTools;
 
@@ -10,31 +13,19 @@ namespace Tests.PlayModeTests
     public class MapDisplayTests
     {
         private readonly Chance _chance;
-        private readonly IMapDisplayController _mapDisplayController;
         private readonly MapDisplay _sut;
-        private readonly Texture _expectedTexture;
-        private readonly float[,] _noiseMap;
+        private readonly Texture2D _expectedTexture;
 
         public MapDisplayTests()
         {
             _chance = new Chance();
             
+            
             var gameObject = new GameObject();
             _sut = gameObject.AddComponent<MapDisplay>();
+            _sut.textureRenderer = GetMockTextureRenderer();
             
             _expectedTexture = GetMockExpectedTexture();
-            _mapDisplayController = GetMockDisplayController(_expectedTexture);
-            
-            _noiseMap = GetMockNoiseMap();
-        }
-
-        [UnityTest]
-        public IEnumerator GivenNoiseMap_WhenCallingDrawNoiseMap_ThenShouldCallGenerateTextureWithNoiseMap()
-        {
-            _sut.DrawNoiseMap(_noiseMap);
-            yield return null;
-            
-            _mapDisplayController.Received(1).GenerateTexture(_noiseMap);
         }
 
         [UnityTest]
@@ -42,7 +33,7 @@ namespace Tests.PlayModeTests
         {
             _sut.textureRenderer.sharedMaterial.mainTexture.Should().BeNull();
             
-            _sut.DrawNoiseMap(_noiseMap);
+            _sut.DrawTexture(_expectedTexture);
             yield return null;
             
             _sut.textureRenderer.sharedMaterial.mainTexture.Should().NotBeNull();
@@ -52,56 +43,30 @@ namespace Tests.PlayModeTests
         [UnityTest]
         public IEnumerator GivenNoiseMap_WhenCallingDrawNoiseMap_ThenShouldSetTextureSize()
         {
-            _sut.textureRenderer.transform.localScale.Should().BeEquivalentTo(Vector3.one);
+            Assert.AreEqual(Vector3.one, _sut.textureRenderer.transform.localScale);
             
-            _sut.DrawNoiseMap(_noiseMap);
+            _sut.DrawTexture(_expectedTexture);
             yield return null;
             
             var expectedScale = new Vector3(_expectedTexture.width,1, _expectedTexture.height);
             
-            _sut.textureRenderer.transform.localScale.Should().BeEquivalentTo(expectedScale);
+            Assert.AreEqual(expectedScale, _sut.textureRenderer.transform.localScale);
             
         }
 
-        [UnitySetUp]
-        public IEnumerator BeforeEach()
+        private Texture2D GetMockExpectedTexture()
         {
-            yield return null;
-            
-            var textureRenderer = GetMockTextureRenderer();
-            _mapDisplayController.ClearReceivedCalls();
-            
-            _sut.Construct(_mapDisplayController, textureRenderer);
-        }
-
-        private float[,] GetMockNoiseMap()
-        {
-            var mapWidth = _chance.Integer(2, 20);
-            var mapHeight = _chance.Integer(2, 20);
-            var noiseMap = new float[mapWidth, mapHeight];
-            for (int xIndex = 0; xIndex < mapWidth; xIndex++)
+            var texture= new Texture2D(_chance.Integer(2, 20), _chance.Integer(2, 20));
+            for (var x = 0; x < texture.width; x++)
             {
-                for (int yIndex = 0; yIndex < mapHeight; yIndex++)
+                for (var y = 0; y < texture.height; y++)
                 {
-                    noiseMap[xIndex, yIndex] = (float) _chance.Double();
+                    texture.SetPixel(x, y, new Color(_chance.Integer(0, 255), _chance.Integer(0, 255), _chance.Integer(0, 255)));
                 }
             }
-
-            return noiseMap;
-        }
-
-        private Texture GetMockExpectedTexture()
-        {
-            return new Texture2D(_chance.Integer(2, 20), _chance.Integer(2, 20));
-        }
-
-        private IMapDisplayController GetMockDisplayController(Texture expectedTexture)
-        {
-            var controller = Substitute.For<IMapDisplayController>();
-            controller .GenerateTexture(default).ReturnsForAnyArgs(expectedTexture);
-            return controller;
-        }
-
+            texture.Apply();
+            return texture;
+        } 
         private Renderer GetMockTextureRenderer()
         {
             var renderer = Resources.Load<Renderer>("Tests/MapDisplay");
