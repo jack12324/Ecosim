@@ -21,11 +21,11 @@ public static class TextureGenerator
         
         var colorMap = new Color[mapWidth * mapHeight];
 
-        for (var y = 0; y < mapHeight; y++)
+        for (var row = 0; row < mapHeight; row++)
         {
-            for (var x = 0; x < mapWidth; x++)
+            for (var col = 0; col < mapWidth; col++)
             {
-                colorMap[y * mapWidth + x] = Color.Lerp(Color.black, Color.white, noiseMap[x, y]);
+                colorMap[row * mapWidth + col] = Color.Lerp(Color.black, Color.white, noiseMap[col, row]);
             }
         }
 
@@ -44,15 +44,15 @@ public static class TextureGenerator
     public static Color[] ColorMapFromTerrains(float[,] noiseMap, IEnumerable<TerrainType> regions)
     {
         var sortedRegions = regions.OrderBy(region => region.maxHeight).ToList();
-        var mapWidth = noiseMap.GetLength(0);
-        var mapHeight = noiseMap.GetLength(1);
+        var mapHeight = noiseMap.GetLength(0);
+        var mapWidth = noiseMap.GetLength(1);
 
         var colorMap = new Color[mapHeight * mapWidth];
-        for (var x = 0; x < mapWidth; x++)
+        for (var row = 0; row < mapHeight; row++)
         {
-            for (var y = 0; y < mapHeight; y++)
+            for (var col = 0; col < mapWidth; col++)
             {
-                colorMap[x * mapHeight + y] = TextureGenerator.FindTerrainColor(noiseMap[x, y], sortedRegions);
+                colorMap[row * mapWidth + col] = FindTerrainColor(noiseMap[row, col], sortedRegions);
             }
         }
 
