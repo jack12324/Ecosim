@@ -68,15 +68,12 @@ namespace Tests.EditModeTests
                 new TerrainType {maxHeight = .75f, color = Color.gray},
                 new TerrainType {maxHeight = 1, color = Color.red}
             };
-            var expectedColorBlue = TextureGenerator.FindTerrainColor(.2f, terrains);
-            var expectedColorBlack = TextureGenerator.FindTerrainColor(.3f, terrains);
-            var expectedColorGray = TextureGenerator.FindTerrainColor(.6f, terrains);
-            var expectedColorRed = TextureGenerator.FindTerrainColor(.8f, terrains);
-            
-            Assert.AreEqual(Color.blue, expectedColorBlue);
-            Assert.AreEqual(Color.black, expectedColorBlack);
-            Assert.AreEqual(Color.gray, expectedColorGray);
-            Assert.AreEqual(Color.red, expectedColorRed);
+            var noiseMap = new[,] {{.2f, .3f}, {.6f, .8f}};
+            var expectedColors = new[] {Color.blue, Color.black, Color.gray, Color.red};
+
+            var result = TextureGenerator.ColorMapFromTerrains(noiseMap, terrains);
+
+            Assert.AreEqual(expectedColors, result);
         }
 
         [Test]
@@ -89,15 +86,12 @@ namespace Tests.EditModeTests
                 new TerrainType {maxHeight = .25f, color = Color.blue},
                 new TerrainType {maxHeight = .5f, color = Color.black}
             };
-            var expectedColorBlue = TextureGenerator.FindTerrainColor(.2f, terrains);
-            var expectedColorBlack = TextureGenerator.FindTerrainColor(.3f, terrains);
-            var expectedColorGray = TextureGenerator.FindTerrainColor(.6f, terrains);
-            var expectedColorRed = TextureGenerator.FindTerrainColor(.8f, terrains);
-            
-            Assert.AreEqual(Color.blue, expectedColorBlue);
-            Assert.AreEqual(Color.black, expectedColorBlack);
-            Assert.AreEqual(Color.gray, expectedColorGray);
-            Assert.AreEqual(Color.red, expectedColorRed);
+            var noiseMap = new[,] {{.2f, .3f}, {.6f, .8f}};
+            var expectedColors = new[] {Color.blue, Color.black, Color.gray, Color.red};
+
+            var result = TextureGenerator.ColorMapFromTerrains(noiseMap, terrains);
+
+            Assert.AreEqual(expectedColors, result);
         }
 
         [Test]
@@ -110,9 +104,12 @@ namespace Tests.EditModeTests
                 new TerrainType {maxHeight = .25f, color = Color.blue},
                 new TerrainType {maxHeight = .5f, color = Color.black}
             };
-            var expectedColorRed = TextureGenerator.FindTerrainColor(1, terrains);
-            
-            Assert.AreEqual(Color.red, expectedColorRed);
+            var noiseMap = new[,] {{.25f, .5f}, {.75f, 1f}};
+            var expectedColors = new[] {Color.blue, Color.black, Color.gray, Color.red};
+
+            var result = TextureGenerator.ColorMapFromTerrains(noiseMap, terrains);
+
+            Assert.AreEqual(expectedColors, result);
         }
 
         [Test]
@@ -125,9 +122,12 @@ namespace Tests.EditModeTests
                 new TerrainType {maxHeight = .25f, color = Color.blue},
                 new TerrainType {maxHeight = .5f, color = Color.black}
             };
-            var expectedColorWhite = TextureGenerator.FindTerrainColor(33, terrains);
-            
-            Assert.AreEqual(Color.white, expectedColorWhite);
+            var noiseMap = new[,] {{.2f, .3f}, {.6f, 3}};
+            var expectedColors = new[] {Color.blue, Color.black, Color.gray, Color.white};
+
+            var result = TextureGenerator.ColorMapFromTerrains(noiseMap, terrains);
+
+            Assert.AreEqual(expectedColors, result);
         }
 
         private float[,] GenerateTestHeightMap()

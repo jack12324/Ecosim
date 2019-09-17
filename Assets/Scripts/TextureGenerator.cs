@@ -1,3 +1,4 @@
+using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
@@ -40,9 +41,26 @@ public static class TextureGenerator
         return TextureFromColorMap(colorMap, mapWidth, mapHeight);
     }
 
-    public static Color FindTerrainColor(float noiseHeight, IEnumerable<TerrainType> regions)
+    public static Color[] ColorMapFromTerrains(float[,] noiseMap, IEnumerable<TerrainType> regions)
     {
         var sortedRegions = regions.OrderBy(region => region.maxHeight).ToList();
+        var mapWidth = noiseMap.GetLength(0);
+        var mapHeight = noiseMap.GetLength(1);
+
+        var colorMap = new Color[mapHeight * mapWidth];
+        for (var x = 0; x < mapWidth; x++)
+        {
+            for (var y = 0; y < mapHeight; y++)
+            {
+                colorMap[x * mapHeight + y] = TextureGenerator.FindTerrainColor(noiseMap[x, y], sortedRegions);
+            }
+        }
+
+        return colorMap;
+    }
+
+    private static Color FindTerrainColor(float noiseHeight, IEnumerable<TerrainType> sortedRegions)
+    {
 
         foreach (var region in sortedRegions)
         {

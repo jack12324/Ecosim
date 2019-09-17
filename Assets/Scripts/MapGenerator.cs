@@ -33,15 +33,8 @@ public partial class MapGenerator : MonoBehaviour
         var offset = new Vector2(offsetX, offsetY);
         var mapAttributes = new MapAttributes(mapWidth, mapHeight, noiseScale, octaves, persistence, lacunarity, offset, seed);
         var noiseMap = Noise.GenerateNoiseMap(mapAttributes);
-        
-        var colorMap = new Color[mapAttributes.MapWidth * mapAttributes.MapHeight];
-        for (var y = 0; y < mapAttributes.MapHeight; y++)
-        {
-            for (var x = 0; x < mapAttributes.MapWidth; x++)
-            {
-                colorMap[y * mapAttributes.MapWidth + x] = TextureGenerator.FindTerrainColor(noiseMap[x, y], regions);
-            }
-        }
+
+        var colorMap = TextureGenerator.ColorMapFromTerrains(noiseMap, regions);
 
         var mapDisplay= GetComponent<MapDisplay>();
 
