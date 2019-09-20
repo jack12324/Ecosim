@@ -20,7 +20,7 @@ namespace Generators
             {
                 for (var col = 0; col < width; col++)
                 {
-                    meshData.Vertices[vertexIndex] = new Vector3(topLeftCol + col, 1000*heightMap[row,col], topLeftRow - row);
+                    meshData.Vertices[vertexIndex] = new Vector3(topLeftCol + col, 1000 * Mathf.Pow(heightMap[row,col], 5), topLeftRow - row);
                     meshData.Uvs[vertexIndex] = new Vector2(col / (float)width, row / (float)height);
 
                     if (row < height - 1 && col < width - 1)
