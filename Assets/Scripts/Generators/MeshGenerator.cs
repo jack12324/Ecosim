@@ -11,7 +11,7 @@ namespace Generators
             var width = heightMap.GetLength(1);
             var height = heightMap.GetLength(0);
             var topLeftRow = (height - 1) / 2f;
-            var topLeftCol = (width - 1) / 2f;
+            var topLeftCol = (width - 1) / -2f;
 
             var meshData = new MeshData(width, height);
             var vertexIndex = 0;
@@ -20,7 +20,7 @@ namespace Generators
             {
                 for (var col = 0; col < width; col++)
                 {
-                    meshData.Vertices[vertexIndex] = new Vector3(topLeftCol - col, 10000*heightMap[row,col], topLeftRow - row);
+                    meshData.Vertices[vertexIndex] = new Vector3(topLeftCol + col, 1000*heightMap[row,col], topLeftRow - row);
                     meshData.Uvs[vertexIndex] = new Vector2(col / (float)width, row / (float)height);
 
                     if (row < height - 1 && col < width - 1)
@@ -40,11 +40,11 @@ namespace Generators
 
 public class MeshData
 {
-    public Vector3[] Vertices;
-    public int[] Triangles;
-    public Vector2[] Uvs;
+    public Vector3[] Vertices{ get; }
+    public  int[] Triangles { get; }
+    public Vector2[] Uvs { get; }
 
-    private int triangleIndex;
+    private int _triangleIndex;
     
     public MeshData(int meshWidth, int meshHeight)
     {
@@ -55,10 +55,10 @@ public class MeshData
 
     public void AddTriangle(int a, int b, int c)
     {
-        Triangles[triangleIndex] = a;
-        Triangles[triangleIndex + 1] = b;
-        Triangles[triangleIndex + 2] = c;
-        triangleIndex += 3;
+        Triangles[_triangleIndex] = a;
+        Triangles[_triangleIndex + 1] = b;
+        Triangles[_triangleIndex + 2] = c;
+        _triangleIndex += 3;
     }
 
     public Mesh CreateMesh()
