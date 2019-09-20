@@ -54,6 +54,12 @@ namespace Tests.PlayModeTests
             
         }
 
+        [SetUp]
+        public void BeforeEach()
+        {
+            _sut.textureRenderer = GetMockTextureRenderer();
+        }
+
         private Texture2D GetMockExpectedTexture()
         {
             var texture= new Texture2D(_chance.Integer(2, 20), _chance.Integer(2, 20));
