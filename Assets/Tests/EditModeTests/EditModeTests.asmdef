@@ -1,19 +1,28 @@
 {
     "name": "EditModeTests",
     "references": [
-        "Scripts"
-    ],
-    "optionalUnityReferences": [
-        "TestAssemblies"
+        "Scripts",
+        "UnityEngine.TestRunner",
+        "UnityEditor.TestRunner"
     ],
     "includePlatforms": [
         "Editor"
     ],
     "excludePlatforms": [],
     "allowUnsafeCode": false,
-    "overrideReferences": false,
-    "precompiledReferences": [],
-    "autoReferenced": true,
-    "defineConstraints": [],
+    "overrideReferences": true,
+    "precompiledReferences": [
+        "nunit.framework.dll",
+        "AutoFixture.dll",
+        "Castle.Core.dll",
+        "Chance.NET.dll",
+        "Fare.dll",
+        "FluentAssertions.dll",
+        "NSubstitute.dll"
+    ],
+    "autoReferenced": false,
+    "defineConstraints": [
+        "UNITY_INCLUDE_TESTS"
+    ],
     "versionDefines": []
 }
