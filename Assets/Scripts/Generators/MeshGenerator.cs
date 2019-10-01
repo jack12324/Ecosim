@@ -6,27 +6,31 @@ namespace Generators
 {
     public static class MeshGenerator
     {
-        public static MeshData GenerateTerrainMesh(float[,] heightMap)
+        public static MeshData GenerateTerrainMesh(float[,] heightMap, float heightMultiplier,
+            AnimationCurve meshHeightCurve, int levelOfDetail)
         {
             var width = heightMap.GetLength(1);
             var height = heightMap.GetLength(0);
             var topLeftRow = (height - 1) / 2f;
             var topLeftCol = (width - 1) / -2f;
 
-            var meshData = new MeshData(width, height);
+            var meshSimplificationIncrement = levelOfDetail == 0 ? 1 : levelOfDetail * 2;
+            var verticesPerLine = (width - 1) / meshSimplificationIncrement + 1;
+
+            var meshData = new MeshData(verticesPerLine, height);
             var vertexIndex = 0;
 
-            for (var row = 0; row < height; row++)
+            for (var row = 0; row < height; row += meshSimplificationIncrement)
             {
-                for (var col = 0; col < width; col++)
+                for (var col = 0; col < width; col += meshSimplificationIncrement)
                 {
-                    meshData.Vertices[vertexIndex] = new Vector3(topLeftCol + col, 1000 * Mathf.Pow(heightMap[row,col], 5), topLeftRow - row);
+                    meshData.Vertices[vertexIndex] = new Vector3(topLeftCol + col, heightMultiplier * meshHeightCurve.Evaluate(heightMap[row,col]), topLeftRow - row);
                     meshData.Uvs[vertexIndex] = new Vector2(col / (float)width, row / (float)height);
 
                     if (row < height - 1 && col < width - 1)
                     {
-                        meshData.AddTriangle(vertexIndex, vertexIndex + width + 1, vertexIndex + width);
-                        meshData.AddTriangle(vertexIndex + width + 1, vertexIndex, vertexIndex + 1);
+                        meshData.AddTriangle(vertexIndex, vertexIndex + verticesPerLine + 1, vertexIndex + verticesPerLine);
+                        meshData.AddTriangle(vertexIndex + verticesPerLine + 1, vertexIndex, vertexIndex + 1);
                     }
                     
                     ++vertexIndex;

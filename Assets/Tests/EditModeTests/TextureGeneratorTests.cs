@@ -2,7 +2,6 @@
 using NUnit.Framework;
 using NUnit.Framework.Internal;
 using UnityEngine;
-using Random = System.Random;
 
 namespace Tests.EditModeTests
 {
