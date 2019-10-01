@@ -1,8 +1,6 @@
 using AutoFixture;
 using ChanceNET;
-using Generators;
 using NUnit.Framework;
-using UnityEngine;
 
 namespace Tests.EditModeTests
 {

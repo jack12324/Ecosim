@@ -1,10 +1,7 @@
 ﻿using System.Collections;
-using System.Net.Mime;
 using ChanceNET;
 using FluentAssertions;
-using NSubstitute;
 using NUnit.Framework;
-using UnityEditor.VersionControl;
 using UnityEngine;
 using UnityEngine.TestTools;
 
@@ -52,6 +49,12 @@ namespace Tests.PlayModeTests
             
             Assert.AreEqual(expectedScale, _sut.textureRenderer.transform.localScale);
             
+        }
+
+        [SetUp]
+        public void BeforeEach()
+        {
+            _sut.textureRenderer = GetMockTextureRenderer();
         }
 
         private Texture2D GetMockExpectedTexture()
