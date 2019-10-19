@@ -13,7 +13,7 @@ namespace Generators
 
         public DrawMode drawMode;
 
-        private const int MapChunkSize = 241;
+        public const int MapChunkSize = 241;
         [Range(0,6)]
         public int levelOfDetail;
         public float noiseScale;
