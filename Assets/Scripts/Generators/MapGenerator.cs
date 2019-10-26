@@ -33,27 +33,36 @@ namespace Generators
         public TerrainType[] regions;
 
 
-        public void GenerateMap()
+        private MapData GenerateMapData()
         {
             var mapAttributes = new MapAttributes(MapChunkSize, MapChunkSize, noiseScale, octaves, persistence, lacunarity, offset, seed);
             var noiseMap = Noise.GenerateNoiseMap(mapAttributes);
 
             var colorMap = TextureGenerator.ColorMapFromTerrains(noiseMap, regions);
 
-            var mapDisplay= GetComponent<MapDisplay>();
+            return new MapData(noiseMap, colorMap);
+            
+        }
 
+        public void DrawSelectedMapType()
+        {
+            var mapData = GenerateMapData();
+            var mapDisplay= GetComponent<MapDisplay>();
+            
             if (drawMode == DrawMode.NoiseMap)
             {
-                mapDisplay.DrawTexture(TextureGenerator.TextureFromHeightMap(noiseMap));
+                mapDisplay.DrawTexture(TextureGenerator.TextureFromHeightMap(mapData.noiseMap));
             }
             else if (drawMode == DrawMode.ColorMap)
             {
-                mapDisplay.DrawTexture(TextureGenerator.TextureFromColorMap(colorMap, mapAttributes.MapWidth, mapAttributes.MapHeight));
+                mapDisplay.DrawTexture(
+                    TextureGenerator.TextureFromColorMap(mapData.colorMap, MapChunkSize, MapChunkSize));
             }
             else if (drawMode == DrawMode.Mesh)
             {
-                mapDisplay.DrawMesh(MeshGenerator.GenerateTerrainMesh(noiseMap, meshHeightMultiplier, meshHeightCurve, levelOfDetail),
-                    TextureGenerator.TextureFromColorMap(colorMap, mapAttributes.MapWidth, mapAttributes.MapHeight));
+                mapDisplay.DrawMesh(
+                    MeshGenerator.GenerateTerrainMesh(mapData.noiseMap, meshHeightMultiplier, meshHeightCurve, levelOfDetail),
+                    TextureGenerator.TextureFromColorMap(mapData.colorMap, MapChunkSize, MapChunkSize));
             }
         }
 
@@ -62,6 +71,17 @@ namespace Generators
             octaves = octaves < 1 ? 1 : octaves;
             lacunarity = lacunarity < 1 ? 1 : lacunarity;
             noiseScale = noiseScale < 0 ? 0 : noiseScale;
+        }
+
+        private struct MapData
+        {
+            public readonly float[,] noiseMap;
+            public readonly Color[] colorMap;
+            public MapData(float[,] noiseMap, Color[] colorMap)
+            {
+                this.noiseMap = noiseMap;
+                this.colorMap = colorMap;
+            }
         }
     }
 }

@@ -1,6 +1,6 @@
 using UnityEngine;
 
-public class MapAttributes
+public struct MapAttributes
 {
     public int MapWidth { get; set; }
     public int MapHeight { get; set; }
@@ -9,7 +9,7 @@ public class MapAttributes
     public float Persistence { get; set; }
     public float Lacunarity { get; set; }
     public int Seed { get; set; }
-    public Vector2 Offset { get; set; }
+    public Offset Offset { get; set; }
 
     public MapAttributes(int mapWidth, int mapHeight, float noiseScale, int octaves, float persistence, float lacunarity, Vector2 offset, int seed)
     {
@@ -20,7 +20,7 @@ public class MapAttributes
         Persistence = persistence;
         Lacunarity = lacunarity;
         Seed = seed;
-        Offset = offset;
+        Offset = new Offset(offset.x, offset.y);
     }
 
     public override string ToString()
@@ -38,5 +38,16 @@ public class MapAttributes
     public MapAttributes DeepCopy()
     {
         return new MapAttributes(MapWidth, MapHeight, NoiseScale, Octaves, Persistence, Lacunarity, new Vector2(Offset.x, Offset.y), Seed);
+    }  
+}
+public struct Offset
+{
+    public float x;
+    public float y;
+
+    public Offset(float x, float y)
+    {
+        this.x = x;
+        this.y = y;
     }
 }
