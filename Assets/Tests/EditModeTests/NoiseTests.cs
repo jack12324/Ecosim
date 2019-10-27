@@ -100,7 +100,7 @@ namespace Tests.EditModeTests
             var attributes1 = GenerateRandomMapAttributesForScrollingTests();
             
             var attributes2 = attributes1.DeepCopy();
-            attributes2.Offset = new Vector2(attributes1.Offset.x + offsetDifference, attributes1.Offset.y);
+            attributes2.Offset = new Offset(attributes1.Offset.x + offsetDifference, attributes1.Offset.y);
             
             var result1 = Noise.GenerateNoiseMap(attributes1);
             var result2 = Noise.GenerateNoiseMap(attributes2);
@@ -125,7 +125,7 @@ namespace Tests.EditModeTests
            var attributes1 = GenerateRandomMapAttributesForScrollingTests();
            
            var attributes2 = attributes1.DeepCopy();
-           attributes2.Offset = new Vector2(attributes1.Offset.x + offsetDifference, attributes1.Offset.y);
+           attributes2.Offset = new Offset(attributes1.Offset.x + offsetDifference, attributes1.Offset.y);
            
            var result1 = Noise.GenerateNoiseMap(attributes1);
            var result2 = Noise.GenerateNoiseMap(attributes2);
@@ -149,7 +149,7 @@ namespace Tests.EditModeTests
 
             var attributes1 = GenerateRandomMapAttributesForScrollingTests();
             var attributes2 = attributes1.DeepCopy();
-            attributes2.Offset = new Vector2(attributes1.Offset.x, attributes1.Offset.y + offsetDifference);
+            attributes2.Offset = new Offset(attributes1.Offset.x, attributes1.Offset.y + offsetDifference);
            
             var result1 = Noise.GenerateNoiseMap(attributes1);
             var result2 = Noise.GenerateNoiseMap(attributes2);
@@ -173,7 +173,7 @@ namespace Tests.EditModeTests
 
             var attributes1 = GenerateRandomMapAttributesForScrollingTests();
             var attributes2 = attributes1.DeepCopy();
-            attributes2.Offset = new Vector2(attributes1.Offset.x, attributes1.Offset.y + offsetDifference);
+            attributes2.Offset = new Offset(attributes1.Offset.x, attributes1.Offset.y + offsetDifference);
            
             var result1 = Noise.GenerateNoiseMap(attributes1);
             var result2 = Noise.GenerateNoiseMap(attributes2);
@@ -225,7 +225,7 @@ namespace Tests.EditModeTests
                 .With(attributes => attributes.Octaves, _chance.Integer(1, 10))
                 .With(attributes => attributes.Persistence, (float) _chance.Double())
                 .With(attributes => attributes.Lacunarity, (float) _chance.Double() + _chance.Integer(0, 10))
-                .With(attributes => attributes.Offset, new Vector2(_chance.Integer(-10000, 10000), _chance.Integer(-10000, 10000)))
+                .With(attributes => attributes.Offset, new Offset(_chance.Integer(-10000, 10000), _chance.Integer(-10000, 10000)))
                 .Create();
         } 
         

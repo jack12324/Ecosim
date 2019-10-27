@@ -1,3 +1,6 @@
+using System.Collections.Generic;
+using Unity.Collections;
+using Unity.Jobs;
 using UnityEngine;
 
 namespace Generators
@@ -33,37 +36,74 @@ namespace Generators
         public TerrainType[] regions;
 
 
-        private MapData GenerateMapData()
+        private struct GenerateMapDataJob : IJob
         {
-            var mapAttributes = new MapAttributes(MapChunkSize, MapChunkSize, noiseScale, octaves, persistence, lacunarity, offset, seed);
-            var noiseMap = Noise.GenerateNoiseMap(mapAttributes);
+            public MapAttributes MapAttributes;
+            public NativeArray<float> NoiseMap;
+            public NativeArray<Color> ColorMap;
+            public NativeArray<TerrainType> Regions;
 
-            var colorMap = TextureGenerator.ColorMapFromTerrains(noiseMap, regions);
+            public void Execute()
+            {
+                var noiseMapArray = Noise.GenerateNoiseMapFlat(MapAttributes);
+                var colorMapArray = TextureGenerator.ColorMapFromTerrains(noiseMapArray, Regions);
 
-            return new MapData(noiseMap, colorMap);
-            
+                for (var i = 0; i < NoiseMap.Length; i++)
+                {
+                    NoiseMap[i] = noiseMapArray[i];
+                    ColorMap[i] = colorMapArray[i];
+                }
+            }
         }
 
         public void DrawSelectedMapType()
         {
             var mapData = GenerateMapData();
+            
             var mapDisplay= GetComponent<MapDisplay>();
             
             if (drawMode == DrawMode.NoiseMap)
             {
-                mapDisplay.DrawTexture(TextureGenerator.TextureFromHeightMap(mapData.noiseMap));
+                mapDisplay.DrawTexture(TextureGenerator.TextureFromHeightMap(mapData.NoiseMap));
             }
             else if (drawMode == DrawMode.ColorMap)
             {
                 mapDisplay.DrawTexture(
-                    TextureGenerator.TextureFromColorMap(mapData.colorMap, MapChunkSize, MapChunkSize));
+                    TextureGenerator.TextureFromColorMap(mapData.ColorMap, MapChunkSize, MapChunkSize));
             }
             else if (drawMode == DrawMode.Mesh)
             {
                 mapDisplay.DrawMesh(
-                    MeshGenerator.GenerateTerrainMesh(mapData.noiseMap, meshHeightMultiplier, meshHeightCurve, levelOfDetail),
-                    TextureGenerator.TextureFromColorMap(mapData.colorMap, MapChunkSize, MapChunkSize));
+                    MeshGenerator.GenerateTerrainMesh(mapData.NoiseMap, meshHeightMultiplier, meshHeightCurve, levelOfDetail),
+                    TextureGenerator.TextureFromColorMap(mapData.ColorMap, MapChunkSize, MapChunkSize));
             }
+        }
+
+        private MapData GenerateMapData()
+        {
+            var attributes = new MapAttributes(MapChunkSize, MapChunkSize, noiseScale, octaves, persistence, lacunarity, offset,
+                seed);
+            var terrainRegions = new NativeArray<TerrainType>(regions.Length, Allocator.TempJob);
+            var noiseMapFlat = new NativeArray<float>(attributes.MapHeight * attributes.MapWidth, Allocator.TempJob);
+            var colorMap = new NativeArray<Color>(attributes.MapHeight * attributes.MapWidth, Allocator.TempJob);
+            for (var i = 0; i < terrainRegions.Length; i++)
+                terrainRegions[i] = regions[i];
+
+            var job = new GenerateMapDataJob
+            {
+                MapAttributes = attributes, Regions = terrainRegions, NoiseMap = noiseMapFlat, ColorMap = colorMap
+            };
+
+            JobHandle handle = job.Schedule();
+            handle.Complete();
+
+            var mapData = new MapData(noiseMapFlat.ToArray(), colorMap.ToArray(), MapChunkSize);
+            
+            terrainRegions.Dispose();
+            noiseMapFlat.Dispose();
+            colorMap.Dispose();
+            
+            return mapData;
         }
 
         private void OnValidate()
@@ -72,15 +112,23 @@ namespace Generators
             lacunarity = lacunarity < 1 ? 1 : lacunarity;
             noiseScale = noiseScale < 0 ? 0 : noiseScale;
         }
-
         private struct MapData
         {
-            public readonly float[,] noiseMap;
-            public readonly Color[] colorMap;
-            public MapData(float[,] noiseMap, Color[] colorMap)
+            public readonly float[,] NoiseMap;
+            public readonly Color[] ColorMap;
+            public MapData(IReadOnlyList<float> noiseMapFlat, Color[] colorMap, int width)
             {
-                this.noiseMap = noiseMap;
-                this.colorMap = colorMap;
+                NoiseMap = new float[width, width];
+                var index = 0;
+                for (var row = 0; row < NoiseMap.GetLength(0); row++)
+                {
+                    for (var col = 0; col < NoiseMap.GetLength(1); col++)
+                    {
+                        NoiseMap[row, col] = noiseMapFlat[index];
+                        ++index;
+                    }
+                }
+                this.ColorMap = colorMap;
             }
         }
     }

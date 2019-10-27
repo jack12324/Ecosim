@@ -42,19 +42,14 @@ namespace Generators
             return TextureFromColorMap(colorMap, mapWidth, mapHeight);
         }
 
-        public static Color[] ColorMapFromTerrains(float[,] noiseMap, IEnumerable<TerrainType> regions)
+        public static Color[] ColorMapFromTerrains(float[] noiseMapFlat, IEnumerable<TerrainType> regions)
         {
             var sortedRegions = regions.OrderBy(region => region.maxHeight).ToList();
-            var mapHeight = noiseMap.GetLength(0);
-            var mapWidth = noiseMap.GetLength(1);
 
-            var colorMap = new Color[mapHeight * mapWidth];
-            for (var row = 0; row < mapHeight; row++)
+            var colorMap = new Color[noiseMapFlat.Length];
+            for (var i = 0; i < noiseMapFlat.Length; i++)
             {
-                for (var col = 0; col < mapWidth; col++)
-                {
-                    colorMap[row * mapWidth + col] = FindTerrainColor(noiseMap[row, col], sortedRegions);
-                }
+                    colorMap[i] = FindTerrainColor(noiseMapFlat[i], sortedRegions);
             }
 
             return colorMap;

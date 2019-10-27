@@ -68,4 +68,21 @@ public static class Noise
             
         return noiseMap;
     }
+
+    public static float[] GenerateNoiseMapFlat(MapAttributes attributes)
+    {
+        var noiseMap = GenerateNoiseMap(attributes);
+        var noiseMapFlat = new float[noiseMap.Length];
+        var index = 0;
+        for (var row = 0; row < noiseMap.GetLength(0); row++)
+        {
+            for (var col = 0; col < noiseMap.GetLength(1); col++)
+            {
+                noiseMapFlat[index] = noiseMap[row, col];
+                ++index;
+            }   
+        }
+
+        return noiseMapFlat;
+    }
 }

@@ -15,6 +15,7 @@ public class TerrainChunk
         _meshObject.transform.localScale = Vector3.one * (size / 10f);
         _meshObject.transform.parent = parent;
         SetVisible(false);
+        
     }
 
     public void UpdateTerrainChunk(Vector2 viewerPosition, float maxViewDistance)

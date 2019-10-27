@@ -46,11 +46,8 @@ public class EndlessTerrain : MonoBehaviour
                                 if (_terrainChunkDictionary.ContainsKey(viewedChunkCoordinates))
                                 {
                                         var currentChunk = _terrainChunkDictionary[viewedChunkCoordinates];
-                                        currentChunk.UpdateTerrainChunk(_viewerPosition, MaxViewDistance);
-                                        if (currentChunk.IsVisible())
-                                        {
-                                                _terrainChunksVisibleLastUpdate.Add(currentChunk);
-                                        }
+                                        currentChunk.SetVisible(true);
+                                        _terrainChunksVisibleLastUpdate.Add(currentChunk);
                                 }
                                 else
                                 {
