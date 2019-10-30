@@ -1,5 +1,8 @@
 using System.Collections.Generic;
 using System.Linq;
+using Unity.Burst;
+using Unity.Collections;
+using Unity.Jobs;
 using UnityEngine;
 
 namespace Generators
@@ -42,17 +45,25 @@ namespace Generators
             return TextureFromColorMap(colorMap, mapWidth, mapHeight);
         }
 
-        public static Color[] ColorMapFromTerrains(float[] noiseMapFlat, IEnumerable<TerrainType> regions)
+        [BurstCompile]
+        public struct ColorMapFromTerrainsJob :IJob
         {
-            var sortedRegions = regions.OrderBy(region => region.maxHeight).ToList();
-
-            var colorMap = new Color[noiseMapFlat.Length];
-            for (var i = 0; i < noiseMapFlat.Length; i++)
+            [ReadOnly]
+            public NativeArray<TerrainType> Regions;
+            [ReadOnly]
+            public NativeArray<float> NoiseMapFlat;
+            [WriteOnly]
+            public NativeArray<Color> ColorMap;
+            public void Execute()
             {
-                    colorMap[i] = FindTerrainColor(noiseMapFlat[i], sortedRegions);
-            }
 
-            return colorMap;
+                var sortedRegions = Regions.OrderBy(region => region.maxHeight).ToList();
+
+                for (var i = 0; i < NoiseMapFlat.Length; i++)
+                {
+                    ColorMap[i] = FindTerrainColor(NoiseMapFlat[i], sortedRegions);
+                }
+            }
         }
 
         private static Color FindTerrainColor(float noiseHeight, IEnumerable<TerrainType> sortedRegions)

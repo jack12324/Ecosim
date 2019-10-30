@@ -1,9 +1,8 @@
 using UnityEngine;
 
-public struct MapAttributes
+public class MapAttributes
 {
-    public int MapWidth { get; set; }
-    public int MapHeight { get; set; }
+    public int MapSideLength { get; set; }
     public float NoiseScale { get; set; }
     public int Octaves { get; set; }
     public float Persistence { get; set; }
@@ -11,10 +10,9 @@ public struct MapAttributes
     public int Seed { get; set; }
     public Offset Offset { get; set; }
 
-    public MapAttributes(int mapWidth, int mapHeight, float noiseScale, int octaves, float persistence, float lacunarity, Vector2 offset, int seed)
+    public MapAttributes(int mapSideLength, float noiseScale, int octaves, float persistence, float lacunarity, Vector2 offset, int seed)
     {
-        MapWidth = mapWidth;
-        MapHeight = mapHeight;
+        MapSideLength = mapSideLength;
         NoiseScale = noiseScale;
         Octaves = octaves;
         Persistence = persistence;
@@ -25,8 +23,7 @@ public struct MapAttributes
 
     public override string ToString()
     {
-        return $"MapWidth: {MapWidth}\n" +
-               $"MapHeight: {MapHeight}\n" +
+        return $"mapSideLength: {MapSideLength}\n" +
                $"NoiseScale: {NoiseScale}\n" +
                $"Octaves: {Octaves}\n" +
                $"Persistence: {Persistence}\n" +
@@ -37,7 +34,7 @@ public struct MapAttributes
 
     public MapAttributes DeepCopy()
     {
-        return new MapAttributes(MapWidth, MapHeight, NoiseScale, Octaves, Persistence, Lacunarity, new Vector2(Offset.x, Offset.y), Seed);
+        return new MapAttributes(MapSideLength,  NoiseScale, Octaves, Persistence, Lacunarity, new Vector2(Offset.x, Offset.y), Seed);
     }  
 }
 public struct Offset

@@ -18,6 +18,7 @@
         "Chance.NET.dll",
         "Fare.dll",
         "FluentAssertions.dll",
+        "Unity.Burst.Unsafe.dll",
         "NSubstitute.dll"
     ],
     "autoReferenced": false,
