@@ -28,7 +28,7 @@ public static class Noise
         {
             var  rand = new Unity.Mathematics.Random(Seed);
             var xOffset = rand.NextInt(-100000, 100000) + offset.x;
-            var yOffset = rand.NextInt(-100000, 100000) + offset.y;
+            var yOffset = rand.NextInt(-100000, 100000) - offset.y;
 
             var halfLength = sideLength / 2;
 

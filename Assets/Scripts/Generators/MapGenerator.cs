@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using Unity.Burst;
 using Unity.Collections;
 using Unity.Jobs;
@@ -72,7 +73,7 @@ namespace Generators
             
             var colorMap = new NativeArray<Color>(attributes.MapSideLength * attributes.MapSideLength, Allocator.TempJob);
             var terrainRegions = new NativeArray<TerrainType>(this.regions.Length, Allocator.TempJob);
-            terrainRegions.CopyFrom(regions);
+            terrainRegions.CopyFrom(regions.OrderBy(region => region.maxHeight).ToArray());
 
             var mapDataJob = new Noise.GenerateNoiseMapJob
             {
@@ -88,7 +89,7 @@ namespace Generators
             var colorMapJob = new TextureGenerator.ColorMapFromTerrainsJob
             {
                 NoiseMapFlat = noiseMapFlat,
-                Regions = terrainRegions,
+                SortedRegions = terrainRegions,
                 ColorMap = colorMap
             };
 

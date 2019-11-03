@@ -1,4 +1,5 @@
-﻿using Generators;
+﻿using System.Linq;
+using Generators;
 using NUnit.Framework;
 using NUnit.Framework.Internal;
 using Unity.Collections;
@@ -69,24 +70,6 @@ namespace Tests.EditModeTests
                 new TerrainType {maxHeight = .5f, color = Color.black},
                 new TerrainType {maxHeight = .75f, color = Color.gray},
                 new TerrainType {maxHeight = 1, color = Color.red}
-            };
-            var noiseMap = new[] {.2f, .3f, .6f, .8f};
-            var expectedColors = new[] {Color.blue, Color.black, Color.gray, Color.red};
-
-            var result = GetColorMap(noiseMap, terrains);
-
-            Assert.AreEqual(expectedColors, result);
-        }
-
-        [Test]
-        public void GivenHeightAndTerrainTypesOutOfOrder_WhenCallingFindTerrainColor_ThenReturnCorrectColor()
-        {
-            var terrains = new[]
-            {
-                new TerrainType {maxHeight = .75f, color = Color.gray},
-                new TerrainType {maxHeight = 1, color = Color.red},
-                new TerrainType {maxHeight = .25f, color = Color.blue},
-                new TerrainType {maxHeight = .5f, color = Color.black}
             };
             var noiseMap = new[] {.2f, .3f, .6f, .8f};
             var expectedColors = new[] {Color.blue, Color.black, Color.gray, Color.red};
@@ -173,11 +156,11 @@ namespace Tests.EditModeTests
                 var colorMap = new NativeArray<Color>(noiseMap.Length, Allocator.TempJob);
                 var terrainRegions = new NativeArray<TerrainType>(regions.Length, Allocator.TempJob);
                 var noiseMapFlat = new NativeArray<float>(noiseMap.Length, Allocator.TempJob);
-                terrainRegions.CopyFrom(regions);
+                terrainRegions.CopyFrom(regions.OrderBy(region => region.maxHeight).ToArray());
                 noiseMapFlat.CopyFrom(noiseMap);
                 var colorMapJob = new TextureGenerator.ColorMapFromTerrainsJob{
                     NoiseMapFlat = noiseMapFlat,
-                    Regions = terrainRegions,
+                    SortedRegions = terrainRegions,
                     ColorMap = colorMap
                 };
 

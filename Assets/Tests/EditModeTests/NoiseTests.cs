@@ -146,7 +146,7 @@ namespace Tests.EditModeTests
         }
         
         [Test]
-        public void GivenGeneratedMap_WhenDecreasingYOffset_ShouldScrollMapUp()
+        public void GivenGeneratedMap_WhenDecreasingYOffset_ShouldScrollMapDown()
         {
             var offsetDifference = _chance.Integer(-5, 1);
 
@@ -164,13 +164,13 @@ namespace Tests.EditModeTests
                     var message = $"{attributes1}\n" +
                                   $"Current row: {row}\n" +
                                   $"offsetDifference: {offsetDifference}";
-                    Assert.AreEqual(result1[row, col], result2[(int)(row - attributes1.NoiseScale * offsetDifference), col],  message);
+                    Assert.AreEqual(result1[(int)(row - attributes1.NoiseScale * offsetDifference), col], result2[row, col],  message);
                 }
             }
         }
         
         [Test]
-        public void GivenGeneratedMap_WhenIncreasingYOffset_ShouldScrollMapDown()
+        public void GivenGeneratedMap_WhenIncreasingYOffset_ShouldScrollMapUp()
         {
             var offsetDifference = _chance.Integer(0, 6);
 

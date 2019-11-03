@@ -49,33 +49,31 @@ namespace Generators
         public struct ColorMapFromTerrainsJob :IJob
         {
             [ReadOnly]
-            public NativeArray<TerrainType> Regions;
+            public NativeArray<TerrainType> SortedRegions;
             [ReadOnly]
             public NativeArray<float> NoiseMapFlat;
             [WriteOnly]
             public NativeArray<Color> ColorMap;
             public void Execute()
             {
-
-                var sortedRegions = Regions.OrderBy(region => region.maxHeight).ToList();
-
                 for (var i = 0; i < NoiseMapFlat.Length; i++)
                 {
-                    ColorMap[i] = FindTerrainColor(NoiseMapFlat[i], sortedRegions);
+                    ColorMap[i] = FindTerrainColor(NoiseMapFlat[i], SortedRegions);
                 }
             }
         }
 
-        private static Color FindTerrainColor(float noiseHeight, IEnumerable<TerrainType> sortedRegions)
+        private static Color FindTerrainColor(float noiseHeight, NativeArray<TerrainType> sortedRegions)
         {
-
-            foreach (var region in sortedRegions)
+            for (var index = 0; index < sortedRegions.Length; index++)
             {
+                var region = sortedRegions[index];
                 if (noiseHeight <= region.maxHeight)
                 {
                     return region.color;
                 }
             }
+
             return Color.white;
         }
     }
