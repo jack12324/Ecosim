@@ -1,7 +1,10 @@
 ﻿using AutoFixture;
 using ChanceNET;
 using FluentAssertions;
+using Generators;
 using NUnit.Framework;
+using Unity.Collections;
+using Unity.Jobs;
 using UnityEngine;
 
 namespace Tests.EditModeTests
@@ -22,20 +25,20 @@ namespace Tests.EditModeTests
         {
             var attributes = GenerateRandomMapAttributes();
             
-            var result = Noise.GenerateNoiseMap(attributes);
+            var result = GenerateNoiseMap(attributes);
 
-            Assert.AreEqual(attributes.MapWidth, result.GetLength(1), attributes.ToString());
-            Assert.AreEqual(attributes.MapHeight, result.GetLength(0), attributes.ToString());
+            Assert.AreEqual(attributes.MapSideLength, result.GetLength(1), attributes.ToString());
+            Assert.AreEqual(attributes.MapSideLength, result.GetLength(0), attributes.ToString());
         }
 
         [Test]
         public void GivenParameters_WhenCallingGenerateMap_ThenReturnMapWithDifferentValues()
         {
             var attributes = GenerateRandomMapAttributes();
-            var result = Noise.GenerateNoiseMap(attributes);
+            var result = GenerateNoiseMap(attributes);
 
             var firstPixel = result[0, 0];
-            var testPixel = result[_chance.Integer(1, attributes.MapHeight), _chance.Integer(1, attributes.MapWidth)];
+            var testPixel = result[_chance.Integer(1, attributes.MapSideLength), _chance.Integer(1, attributes.MapSideLength)];
 
             Assert.AreNotEqual(firstPixel,testPixel, attributes.ToString());
         }
@@ -48,8 +51,8 @@ namespace Tests.EditModeTests
             var attributes2 = attributes1.DeepCopy();
             attributes2.NoiseScale = (float) _chance.Double() + _chance.Integer(0, 50);
             
-            var result1 = Noise.GenerateNoiseMap(attributes1);
-            var result2 = Noise.GenerateNoiseMap(attributes2);
+            var result1 = GenerateNoiseMap(attributes1);
+            var result2 = GenerateNoiseMap(attributes2);
 
             Assert.AreNotEqual(result1, result2, $"{attributes1}\n{attributes2}");
         }
@@ -59,7 +62,7 @@ namespace Tests.EditModeTests
         {
             var attributes = GenerateRandomMapAttributes();
             attributes.NoiseScale = 0;
-            var result = Noise.GenerateNoiseMap(attributes);
+            var result = GenerateNoiseMap(attributes);
 
             for (var x = 0; x < result.GetLength(0); x++)
             {
@@ -78,12 +81,12 @@ namespace Tests.EditModeTests
             var attributes2 = attributes1.DeepCopy();
             attributes2.NoiseScale = (float) _chance.Double() + _chance.Integer(0, 50);
             
-            var result1 = Noise.GenerateNoiseMap(attributes1);
-            var result2 = Noise.GenerateNoiseMap(attributes2);
+            var result1 = GenerateNoiseMap(attributes1);
+            var result2 = GenerateNoiseMap(attributes2);
 
 
-            var midRow = attributes1.MapHeight / 2;
-            var midCol = attributes1.MapWidth / 2;
+            var midRow = attributes1.MapSideLength / 2;
+            var midCol = attributes1.MapSideLength / 2;
             
             var middlePixel1 = result1[midRow, midCol];
             var middlePixel2 = result2[midRow, midCol];
@@ -100,14 +103,14 @@ namespace Tests.EditModeTests
             var attributes1 = GenerateRandomMapAttributesForScrollingTests();
             
             var attributes2 = attributes1.DeepCopy();
-            attributes2.Offset = new Vector2(attributes1.Offset.x + offsetDifference, attributes1.Offset.y);
+            attributes2.Offset = new Offset(attributes1.Offset.x + offsetDifference, attributes1.Offset.y);
             
-            var result1 = Noise.GenerateNoiseMap(attributes1);
-            var result2 = Noise.GenerateNoiseMap(attributes2);
+            var result1 = GenerateNoiseMap(attributes1);
+            var result2 = GenerateNoiseMap(attributes2);
             
-            for (var row = 0; row < attributes1.MapHeight; row++)
+            for (var row = 0; row < attributes1.MapSideLength; row++)
             {
-                for(var col = 0; col < attributes1.MapWidth+ attributes1.NoiseScale * offsetDifference; col++)
+                for(var col = 0; col < attributes1.MapSideLength+ attributes1.NoiseScale * offsetDifference; col++)
                 {
                     var message = $"{attributes1}\n" +
                                   $"Current col: {col}\n" +
@@ -125,14 +128,14 @@ namespace Tests.EditModeTests
            var attributes1 = GenerateRandomMapAttributesForScrollingTests();
            
            var attributes2 = attributes1.DeepCopy();
-           attributes2.Offset = new Vector2(attributes1.Offset.x + offsetDifference, attributes1.Offset.y);
+           attributes2.Offset = new Offset(attributes1.Offset.x + offsetDifference, attributes1.Offset.y);
            
-           var result1 = Noise.GenerateNoiseMap(attributes1);
-           var result2 = Noise.GenerateNoiseMap(attributes2);
+           var result1 = GenerateNoiseMap(attributes1);
+           var result2 = GenerateNoiseMap(attributes2);
             
-            for (var row = 0; row < attributes1.MapHeight; row++)
+            for (var row = 0; row < attributes1.MapSideLength; row++)
             {
-                for(var col = (int)(attributes1.MapWidth + attributes1.NoiseScale * offsetDifference); col < attributes1.MapWidth; col++)
+                for(var col = (int)(attributes1.MapSideLength + attributes1.NoiseScale * offsetDifference); col < attributes1.MapSideLength; col++)
                 {
                     var message = $"{attributes1}\n" +
                                   $"Current col: {col}\n" +
@@ -143,44 +146,44 @@ namespace Tests.EditModeTests
         }
         
         [Test]
-        public void GivenGeneratedMap_WhenDecreasingYOffset_ShouldScrollMapUp()
+        public void GivenGeneratedMap_WhenDecreasingYOffset_ShouldScrollMapDown()
         {
             var offsetDifference = _chance.Integer(-5, 1);
 
             var attributes1 = GenerateRandomMapAttributesForScrollingTests();
             var attributes2 = attributes1.DeepCopy();
-            attributes2.Offset = new Vector2(attributes1.Offset.x, attributes1.Offset.y + offsetDifference);
+            attributes2.Offset = new Offset(attributes1.Offset.x, attributes1.Offset.y + offsetDifference);
            
-            var result1 = Noise.GenerateNoiseMap(attributes1);
-            var result2 = Noise.GenerateNoiseMap(attributes2);
+            var result1 = GenerateNoiseMap(attributes1);
+            var result2 = GenerateNoiseMap(attributes2);
             
-            for (var row = 0; row < attributes1.MapHeight + attributes1.NoiseScale * offsetDifference; row++)
+            for (var row = 0; row < attributes1.MapSideLength + attributes1.NoiseScale * offsetDifference; row++)
             {
-                for(var col = 0; col < attributes1.MapWidth; col++)
+                for(var col = 0; col < attributes1.MapSideLength; col++)
                 {
                     var message = $"{attributes1}\n" +
                                   $"Current row: {row}\n" +
                                   $"offsetDifference: {offsetDifference}";
-                    Assert.AreEqual(result1[row, col], result2[(int)(row - attributes1.NoiseScale * offsetDifference), col],  message);
+                    Assert.AreEqual(result1[(int)(row - attributes1.NoiseScale * offsetDifference), col], result2[row, col],  message);
                 }
             }
         }
         
         [Test]
-        public void GivenGeneratedMap_WhenIncreasingYOffset_ShouldScrollMapDown()
+        public void GivenGeneratedMap_WhenIncreasingYOffset_ShouldScrollMapUp()
         {
             var offsetDifference = _chance.Integer(0, 6);
 
             var attributes1 = GenerateRandomMapAttributesForScrollingTests();
             var attributes2 = attributes1.DeepCopy();
-            attributes2.Offset = new Vector2(attributes1.Offset.x, attributes1.Offset.y + offsetDifference);
+            attributes2.Offset = new Offset(attributes1.Offset.x, attributes1.Offset.y + offsetDifference);
            
-            var result1 = Noise.GenerateNoiseMap(attributes1);
-            var result2 = Noise.GenerateNoiseMap(attributes2);
+            var result1 = GenerateNoiseMap(attributes1);
+            var result2 = GenerateNoiseMap(attributes2);
             
-            for (var row = (int)(attributes1.MapHeight + attributes1.NoiseScale * offsetDifference); row < attributes1.MapHeight; row++)
+            for (var row = (int)(attributes1.MapSideLength + attributes1.NoiseScale * offsetDifference); row < attributes1.MapSideLength; row++)
             {
-                for(var col = 0; col < attributes1.MapWidth; col++)
+                for(var col = 0; col < attributes1.MapSideLength; col++)
                 {
                     var message = $"{attributes1}\n" +
                                   $"Current row: {row}\n" +
@@ -198,8 +201,8 @@ namespace Tests.EditModeTests
             attributes2.Seed = _chance.Integer();
             
             
-            var result1 = Noise.GenerateNoiseMap(attributes1);
-            var result2 = Noise.GenerateNoiseMap(attributes2);
+            var result1 = GenerateNoiseMap(attributes1);
+            var result2 = GenerateNoiseMap(attributes2);
 
             Assert.AreNotEqual(result1, result2, $"{attributes1}\n{attributes2}");
         }
@@ -210,8 +213,8 @@ namespace Tests.EditModeTests
             var attributes = GenerateRandomMapAttributes();
             var attributes2 = attributes.DeepCopy();
             
-            var result1 = Noise.GenerateNoiseMap(attributes);
-            var result2 = Noise.GenerateNoiseMap(attributes2);
+            var result1 = GenerateNoiseMap(attributes);
+            var result2 = GenerateNoiseMap(attributes2);
             
             Assert.AreEqual(result1, result2);
         }
@@ -219,13 +222,13 @@ namespace Tests.EditModeTests
         private MapAttributes GenerateRandomMapAttributes()
         {
             return _fixture.Build<MapAttributes>()
-                .With(attributes => attributes.MapWidth, _chance.Integer(2, 100))
-                .With(attributes => attributes.MapHeight, _chance.Integer(2, 100))
+                .With(attributes => attributes.MapSideLength, _chance.Integer(2, 100))
+                .With(attributes => attributes.MapSideLength, _chance.Integer(2, 100))
                 .With(attributes => attributes.NoiseScale, (float) _chance.Double() + _chance.Integer(0, 50))
                 .With(attributes => attributes.Octaves, _chance.Integer(1, 10))
                 .With(attributes => attributes.Persistence, (float) _chance.Double())
                 .With(attributes => attributes.Lacunarity, (float) _chance.Double() + _chance.Integer(0, 10))
-                .With(attributes => attributes.Offset, new Vector2(_chance.Integer(-10000, 10000), _chance.Integer(-10000, 10000)))
+                .With(attributes => attributes.Offset, new Offset(_chance.Integer(-10000, 10000), _chance.Integer(-10000, 10000)))
                 .Create();
         } 
         
@@ -238,11 +241,49 @@ namespace Tests.EditModeTests
             //reverse scaling calculation is not exact when scale is not integer
             var integerScale = _chance.Integer(1, 5);
             
-            attributes.MapWidth = largeEnoughWidth;
-            attributes.MapHeight = largeEnoughHeight;
+            attributes.MapSideLength = largeEnoughWidth;
+            attributes.MapSideLength = largeEnoughHeight;
             attributes.NoiseScale = integerScale;
 
             return attributes;
+        }
+        private float[,] GenerateNoiseMap(MapAttributes attributes)
+        {
+            
+            var sysRand = new System.Random(attributes.Seed);
+            attributes.Seed = sysRand.Next();
+            
+            var noiseMapFlat = new NativeArray<float>(attributes.MapSideLength * attributes.MapSideLength, Allocator.TempJob);
+
+            var mapDataJob = new Noise.GenerateNoiseMapJob
+            {
+                sideLength = attributes.MapSideLength,
+                lacunarity = attributes.Lacunarity,
+                NoiseMap = noiseMapFlat,
+                noiseScale = attributes.NoiseScale,
+                Octaves = attributes.Octaves,
+                offset = attributes.Offset,
+                persistence = attributes.Persistence,
+                Seed = (uint)attributes.Seed
+            };
+
+            var handle = mapDataJob.Schedule();
+            handle.Complete();
+            
+            var noiseMap = new float[attributes.MapSideLength, attributes.MapSideLength];
+            var index = 0;
+            for (var row = 0; row < noiseMap.GetLength(0); row++)
+            {
+                for (var col = 0; col < noiseMap.GetLength(1); col++)
+                {
+                    noiseMap[row, col] = noiseMapFlat[index];
+                    ++index;
+                }
+            }
+                
+            noiseMapFlat.Dispose();
+
+            return noiseMap;
         }
         
 

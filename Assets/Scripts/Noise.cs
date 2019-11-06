@@ -1,71 +1,85 @@
-﻿using System;
+using System;
+using Unity.Burst;
+using Unity.Collections;
+using Unity.Jobs;
+using Unity.Mathematics;
 using UnityEngine;
 using Random = System.Random;
 
 public static class Noise
 {
-    public static float[,] GenerateNoiseMap(MapAttributes attributes)
+   
+    
+    [BurstCompile]
+    public struct  GenerateNoiseMapJob: IJob
     {
-        var noiseMap = new float[attributes.MapHeight, attributes.MapWidth];
-        var random = new Random(attributes.Seed);
-        var octaveOffsets = new Vector2[attributes.Octaves];
-            
-        for (var octave = 0; octave < attributes.Octaves; octave++)
+        [WriteOnly]
+        public NativeArray<float> NoiseMap;
+        public uint Seed;
+        public int Octaves;
+        public Offset offset;
+        public int sideLength;
+        public float noiseScale;
+        public float persistence;
+        public float lacunarity;
+        
+        
+        public void Execute()
         {
-            var xOffset = random.Next(-100000, 100000) + attributes.Offset.x;
-            var yOffset = random.Next(-100000, 100000) + attributes.Offset.y;
-            octaveOffsets[octave] = new Vector2(xOffset, yOffset);
-        }
+            var  rand = new Unity.Mathematics.Random(Seed);
+            var xOffset = rand.NextInt(-100000, 100000) + offset.x;
+            var yOffset = rand.NextInt(-100000, 100000) - offset.y;
 
-        var halfWidth = attributes.MapWidth / 2;
-        var halfHeight = attributes.MapHeight / 2;
-            
+            var halfLength = sideLength / 2;
 
-        if (attributes.NoiseScale <= 0)
-        {
-            attributes.NoiseScale = 0.00003f;
-        }
-            
-            
-        float maxAmplitude = attributes.Octaves;
-        if (!Mathf.Approximately(1, attributes.Persistence))
-        {
-            //This Calculation is derived from the definition of a Geometric Sum
-            maxAmplitude = (float)(1 - Math.Pow(attributes.Persistence, attributes.Octaves)) / (1 - attributes.Persistence);
-        }
 
-        for (var row= 0; row< attributes.MapHeight; row++)
-        {
-            for (var col = 0; col < attributes.MapWidth; col++)
+            if (noiseScale <= 0)
             {
-                var noiseHeight = 0f;
-                var amplitude = 1f;
-                var frequency = 1f;
-                    
-                for (var octave = 0; octave < attributes.Octaves; octave++)
+                noiseScale = 0.00003f;
+            }
+
+            float maxAmplitude = Octaves;
+            if (Math.Abs(persistence - 1) > .001f)
+            {
+                //This Calculation is derived from the definition of a Geometric Sum
+                maxAmplitude = (float)(1 - Math.Pow(persistence, Octaves)) / (1 - persistence);
+            }
+
+            var index = 0;
+            for (var row= 0; row< sideLength; row++)
+            {
+                for (var col = 0; col < sideLength; col++)
                 {
-                    var ySample = ((row- halfHeight) / attributes.NoiseScale + octaveOffsets[octave].y) * frequency ;
-                    var xSample = ((col - halfWidth) / attributes.NoiseScale + octaveOffsets[octave].x) * frequency ;
-
-                    var perlinValue = Mathf.PerlinNoise(xSample, ySample) * 2 - 1;
-
-                    if (perlinValue <= -2 || perlinValue >= 2)
-                    {
-                        //The PerlinNoise Function has an input range of -1e10 to 1e10, anything outside this range
-                        //causes A very large number to come out, ruining the map
-                        perlinValue = 0;
-                    }
-                    
-                    noiseHeight += perlinValue * amplitude;
+                    var noiseHeight = 0f;
+                    var amplitude = 1f;
+                    var frequency = 1f;
                         
-                    amplitude *= attributes.Persistence;
-                    frequency *= attributes.Lacunarity;
+                    for (var octave = 0; octave < Octaves; octave++)
+                    {
+                        var ySample = ((row- halfLength) / noiseScale + yOffset) * frequency ;
+                        var xSample = ((col - halfLength) / noiseScale + xOffset) * frequency ;
+
+                        var perlinValue = Mathf.PerlinNoise(xSample, ySample) * 2 - 1;
+
+                        if (perlinValue <= -2 || perlinValue >= 2)
+                        {
+                            //The PerlinNoise Function has an input range of -1e10 to 1e10, anything outside this range
+                            //causes A very large number to come out, ruining the map
+                            perlinValue = 0;
+                        }
+                        
+                        noiseHeight += perlinValue * amplitude;
+                            
+                        amplitude *= persistence;
+                        frequency *= lacunarity;
+                    }
+
+                    NoiseMap[index] = Mathf.InverseLerp(-maxAmplitude, maxAmplitude, noiseHeight);
+                    index++;
                 }
-                    
-                noiseMap[row, col] = Mathf.InverseLerp(-maxAmplitude, maxAmplitude, noiseHeight);
             }
         }
-            
-        return noiseMap;
+       
     }
 }
+

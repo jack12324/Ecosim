@@ -1,5 +1,8 @@
 using System.Collections.Generic;
 using System.Linq;
+using Unity.Burst;
+using Unity.Collections;
+using Unity.Jobs;
 using UnityEngine;
 
 namespace Generators
@@ -42,34 +45,35 @@ namespace Generators
             return TextureFromColorMap(colorMap, mapWidth, mapHeight);
         }
 
-        public static Color[] ColorMapFromTerrains(float[,] noiseMap, IEnumerable<TerrainType> regions)
+        [BurstCompile]
+        public struct ColorMapFromTerrainsJob :IJob
         {
-            var sortedRegions = regions.OrderBy(region => region.maxHeight).ToList();
-            var mapHeight = noiseMap.GetLength(0);
-            var mapWidth = noiseMap.GetLength(1);
-
-            var colorMap = new Color[mapHeight * mapWidth];
-            for (var row = 0; row < mapHeight; row++)
+            [ReadOnly]
+            public NativeArray<TerrainType> SortedRegions;
+            [ReadOnly]
+            public NativeArray<float> NoiseMapFlat;
+            [WriteOnly]
+            public NativeArray<Color> ColorMap;
+            public void Execute()
             {
-                for (var col = 0; col < mapWidth; col++)
+                for (var i = 0; i < NoiseMapFlat.Length; i++)
                 {
-                    colorMap[row * mapWidth + col] = FindTerrainColor(noiseMap[row, col], sortedRegions);
+                    ColorMap[i] = FindTerrainColor(NoiseMapFlat[i], SortedRegions);
                 }
             }
-
-            return colorMap;
         }
 
-        private static Color FindTerrainColor(float noiseHeight, IEnumerable<TerrainType> sortedRegions)
+        private static Color FindTerrainColor(float noiseHeight, NativeArray<TerrainType> sortedRegions)
         {
-
-            foreach (var region in sortedRegions)
+            for (var index = 0; index < sortedRegions.Length; index++)
             {
+                var region = sortedRegions[index];
                 if (noiseHeight <= region.maxHeight)
                 {
                     return region.color;
                 }
             }
+
             return Color.white;
         }
     }

@@ -16,7 +16,8 @@
         "Chance.NET.dll",
         "Fare.dll",
         "FluentAssertions.dll",
-        "NSubstitute.dll"
+        "NSubstitute.dll",
+        "Unity.Burst.Unsafe.dll"
     ],
     "autoReferenced": false,
     "defineConstraints": [

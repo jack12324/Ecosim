@@ -1,6 +1,9 @@
-﻿using Generators;
+﻿using System.Linq;
+using Generators;
 using NUnit.Framework;
 using NUnit.Framework.Internal;
+using Unity.Collections;
+using Unity.Jobs;
 using UnityEngine;
 
 namespace Tests.EditModeTests
@@ -61,35 +64,17 @@ namespace Tests.EditModeTests
         [Test]
         public void GivenHeightAndTerrainTypesInOrder_WhenCallingFindTerrainColor_ThenReturnCorrectColor()
         {
-            var terrains = new TerrainType[]
+            var terrains = new[]
             {
                 new TerrainType {maxHeight = .25f, color = Color.blue},
                 new TerrainType {maxHeight = .5f, color = Color.black},
                 new TerrainType {maxHeight = .75f, color = Color.gray},
                 new TerrainType {maxHeight = 1, color = Color.red}
             };
-            var noiseMap = new[,] {{.2f, .3f}, {.6f, .8f}};
+            var noiseMap = new[] {.2f, .3f, .6f, .8f};
             var expectedColors = new[] {Color.blue, Color.black, Color.gray, Color.red};
 
-            var result = TextureGenerator.ColorMapFromTerrains(noiseMap, terrains);
-
-            Assert.AreEqual(expectedColors, result);
-        }
-
-        [Test]
-        public void GivenHeightAndTerrainTypesOutOfOrder_WhenCallingFindTerrainColor_ThenReturnCorrectColor()
-        {
-            var terrains = new TerrainType[]
-            {
-                new TerrainType {maxHeight = .75f, color = Color.gray},
-                new TerrainType {maxHeight = 1, color = Color.red},
-                new TerrainType {maxHeight = .25f, color = Color.blue},
-                new TerrainType {maxHeight = .5f, color = Color.black}
-            };
-            var noiseMap = new[,] {{.2f, .3f}, {.6f, .8f}};
-            var expectedColors = new[] {Color.blue, Color.black, Color.gray, Color.red};
-
-            var result = TextureGenerator.ColorMapFromTerrains(noiseMap, terrains);
+            var result = GetColorMap(noiseMap, terrains);
 
             Assert.AreEqual(expectedColors, result);
         }
@@ -97,17 +82,17 @@ namespace Tests.EditModeTests
         [Test]
         public void GivenHeightAndTerrainTypes_WhenCallingFindTerrainColorAndHeightIsAtCutoff_ThenReturnCorrectColor()
         {
-            var terrains = new TerrainType[]
+            var terrains = new[]
             {
                 new TerrainType {maxHeight = .75f, color = Color.gray},
                 new TerrainType {maxHeight = 1, color = Color.red},
                 new TerrainType {maxHeight = .25f, color = Color.blue},
                 new TerrainType {maxHeight = .5f, color = Color.black}
             };
-            var noiseMap = new[,] {{.25f, .5f}, {.75f, 1f}};
+            var noiseMap = new[] {.25f, .5f, .75f, 1f};
             var expectedColors = new[] {Color.blue, Color.black, Color.gray, Color.red};
 
-            var result = TextureGenerator.ColorMapFromTerrains(noiseMap, terrains);
+            var result = GetColorMap(noiseMap, terrains);
 
             Assert.AreEqual(expectedColors, result);
         }
@@ -115,17 +100,17 @@ namespace Tests.EditModeTests
         [Test]
         public void GivenHeightAndTerrainTypes_WhenCallingFindTerrainColorAndHeightIsNotValid_ThenReturnWhite()
         {
-            var terrains = new TerrainType[]
+            var terrains = new[]
             {
                 new TerrainType {maxHeight = .75f, color = Color.gray},
                 new TerrainType {maxHeight = 1, color = Color.red},
                 new TerrainType {maxHeight = .25f, color = Color.blue},
                 new TerrainType {maxHeight = .5f, color = Color.black}
             };
-            var noiseMap = new[,] {{.2f, .3f}, {.6f, 3}};
+            var noiseMap = new[] {.2f, .3f, .6f, 3f};
             var expectedColors = new[] {Color.blue, Color.black, Color.gray, Color.white};
 
-            var result = TextureGenerator.ColorMapFromTerrains(noiseMap, terrains);
+            var result = GetColorMap(noiseMap, terrains);
 
             Assert.AreEqual(expectedColors, result);
         }
@@ -163,6 +148,33 @@ namespace Tests.EditModeTests
             }
 
             return colorMap;
+        }
+
+        private Color[] GetColorMap(float[] noiseMap, TerrainType[] regions)
+        {
+            
+                var colorMap = new NativeArray<Color>(noiseMap.Length, Allocator.TempJob);
+                var terrainRegions = new NativeArray<TerrainType>(regions.Length, Allocator.TempJob);
+                var noiseMapFlat = new NativeArray<float>(noiseMap.Length, Allocator.TempJob);
+                terrainRegions.CopyFrom(regions.OrderBy(region => region.maxHeight).ToArray());
+                noiseMapFlat.CopyFrom(noiseMap);
+                var colorMapJob = new TextureGenerator.ColorMapFromTerrainsJob{
+                    NoiseMapFlat = noiseMapFlat,
+                    SortedRegions = terrainRegions,
+                    ColorMap = colorMap
+                };
+
+                var handle = colorMapJob.Schedule();
+                handle.Complete();
+
+                var cmap = colorMap.ToArray();
+                
+                noiseMapFlat.Dispose();
+                colorMap.Dispose();
+                terrainRegions.Dispose();
+
+                return cmap;
+            
         }
     }
 }
