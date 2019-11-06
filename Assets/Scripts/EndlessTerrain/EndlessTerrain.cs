@@ -11,7 +11,7 @@ using Random = System.Random;
 public class EndlessTerrain : MonoBehaviour
 {
         public bool thread;
-        private const float MaxViewDistance = 400;
+        private const float MaxViewDistance = 200;
         public Transform viewer;
         public Material mapMaterial;
 
